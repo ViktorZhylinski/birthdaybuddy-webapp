@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BirthdayBuddy - Telegram Import</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .logo {
+            font-size: 48px;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 16px;
+            opacity: 0.8;
+            margin-bottom: 30px;
+        }
+        
+        .button {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+            width: 100%;
+            max-width: 250px;
+        }
+        
+        .button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            display: none;
+        }
+        
+        .status.success {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid rgba(0, 255, 0, 0.3);
+        }
+        
+        .status.error {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+        }
+        
+        .status.info {
+            background: rgba(0, 123, 255, 0.2);
+            border: 1px solid rgba(0, 123, 255, 0.3);
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .contacts-list {
+            text-align: left;
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .contact-item {
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin: 5px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .contact-name {
+            font-weight: bold;
+        }
+        
+        .contact-birthday {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🚀</div>
+        <div class="title">BirthdayBuddy Import</div>
+        <div class="subtitle">Импортируй дни рождения друзей из Telegram</div>
+        
+        <button class="button" id="connectBtn" onclick="connectTelegram()">
+            Подключиться к Telegram
+        </button>
+        
+        <button class="button" id="importBtn" onclick="importContacts()" disabled>
+            Импортировать контакты
+        </button>
+        
+        <div id="status" class="status">
+            <div id="statusText"></div>
+        </div>
+        
+        <div id="contactsList" class="contacts-list" style="display: none;"></div>
+    </div>
+    
+    <script>
+        let isConnected = false;
+        let importedContacts = [];
+        
+        // Инициализация при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('BirthdayBuddy Web App loaded');
+            
+            // Проверяем доступность Telegram Web App
+            if (window.Telegram && window.Telegram.WebApp) {
+                console.log('Telegram Web App API доступен');
+                showStatus('Telegram Web App API загружен', 'info');
+            } else {
+                console.log('Telegram Web App API недоступен - работаем в тестовом режиме');
+                showStatus('Работаем в тестовом режиме', 'info');
+            }
+        });
+        
+        function connectTelegram() {
+            const connectBtn = document.getElementById('connectBtn');
+            const importBtn = document.getElementById('importBtn');
+            
+            connectBtn.disabled = true;
+            showStatus('<span class="loading"></span>Подключение к Telegram...', 'info');
+            
+            setTimeout(() => {
+                if (window.Telegram && window.Telegram.WebApp) {
+                    try {
+                        window.Telegram.WebApp.ready();
+                        window.Telegram.WebApp.expand();
+                        isConnected = true;
+                        
+                        connectBtn.textContent = '✅ Подключено';
+                        importBtn.disabled = false;
+                        showStatus('✅ Успешно подключено к Telegram!', 'success');
+                        
+                        console.log('Telegram Web App подключен');
+                    } catch (error) {
+                        showStatus('❌ Ошибка подключения: ' + error.message, 'error');
+                        connectBtn.disabled = false;
+                    }
+                } else {
+                    // Тестовый режим
+                    isConnected = true;
+                    connectBtn.textContent = '✅ Подключено (тест)';
+                    importBtn.disabled = false;
+                    showStatus('✅ Подключено в тестовом режиме', 'success');
+                }
+            }, 1500);
+        }
+        
+        async function importContacts() {
+            const importBtn = document.getElementById('importBtn');
+            importBtn.disabled = true;
+            showStatus('<span class="loading"></span>Импорт контактов...', 'info');
+            
+            try {
+                // Симуляция запроса к Telegram API
+                const contacts = await simulateTelegramContactsFetch();
+                
+                importedContacts = contacts;
+                displayContacts(contacts);
+                
+                // Отправляем данные в iOS приложение
+                if (window.Telegram && window.Telegram.WebApp) {
+                    window.Telegram.WebApp.sendData(JSON.stringify({
+                        action: 'contacts_imported',
+                        contacts: contacts,
+                        count: contacts.length
+                    }));
+                }
+                
+                showStatus(`✅ Импортировано ${contacts.length} контактов с днями рождения!`, 'success');
+                importBtn.textContent = '✅ Импорт завершён';
+                
+            } catch (error) {
+                showStatus('❌ Ошибка импорта: ' + error.message, 'error');
+                importBtn.disabled = false;
+            }
+        }
+        
+        async function simulateTelegramContactsFetch() {
+            // Симуляция задержки API
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // Возвращаем тестовые контакты с днями рождения
+            return [
+                {
+                    id: '1',
+                    firstName: 'Алексей',
+                    lastName: 'Иванов',
+                    username: 'alex_ivanov',
+                    phoneNumber: '+7 900 123-45-67',
+                    birthday: '15.03.1990'
+                },
+                {
+                    id: '2',
+                    firstName: 'Мария',
+                    lastName: 'Петрова',
+                    username: 'maria_petrova',
+                    phoneNumber: '+7 900 234-56-78',
+                    birthday: '22.07.1985'
+                },
+                {
+                    id: '3',
+                    firstName: 'Дмитрий',
+                    lastName: 'Сидоров',
+                    username: 'dmitry_sidorov',
+                    phoneNumber: '+7 900 345-67-89',
+                    birthday: '10.12.1992'
+                },
+                {
+                    id: '4',
+                    firstName: 'Елена',
+                    lastName: 'Козлова',
+                    username: 'elena_kozlova',
+                    phoneNumber: '+7 900 456-78-90',
+                    birthday: '05.01.1988'
+                },
+                {
+                    id: '5',
+                    firstName: 'Андрей',
+                    lastName: 'Морозов',
+                    username: 'andrey_morozov',
+                    phoneNumber: '+7 900 567-89-01',
+                    birthday: '18.09.1995'
+                }
+            ];
+        }
+        
+        function displayContacts(contacts) {
+            const contactsList = document.getElementById('contactsList');
+            contactsList.style.display = 'block';
+            
+            contactsList.innerHTML = contacts.map(contact => `
+                <div class="contact-item">
+                    <div>
+                        <div class="contact-name">${contact.firstName} ${contact.lastName || ''}</div>
+                        <div class="contact-birthday">🎂 ${contact.birthday}</div>
+                    </div>
+                    <div>✅</div>
+                </div>
+            `).join('');
+        }
+        
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            const statusText = document.getElementById('statusText');
+            
+            statusText.innerHTML = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+            
+            // Автоматически скрываем info статус через 3 секунды
+            if (type === 'info') {
+                setTimeout(() => {
+                    if (status.className === `status ${type}`) {
+                        status.style.display = 'none';
+                    }
+                }, 3000);
+            }
+        }
+    </script>
+</body>
+</html>
