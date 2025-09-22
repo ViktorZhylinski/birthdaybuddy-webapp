@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegram Birthday Importer</title>
+    <title>BirthdayBuddy - Telegram Import</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -29,7 +29,7 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
         h1 {
-            color: #00BFFF; /* Deep Sky Blue */
+            color: #00BFFF;
             margin-bottom: 15px;
             font-size: 2.2em;
             font-weight: bold;
@@ -40,7 +40,7 @@
             line-height: 1.6;
         }
         .button {
-            background: linear-gradient(45deg, #8A2BE2, #4169E1); /* Blue Violet to Royal Blue */
+            background: linear-gradient(45deg, #8A2BE2, #4169E1);
             color: white;
             padding: 15px 30px;
             border: none;
@@ -57,10 +57,6 @@
             transform: translateY(-3px);
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
         }
-        .button:active {
-            transform: translateY(0);
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-        }
         .button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
@@ -74,12 +70,12 @@
         .error-message {
             margin-top: 20px;
             font-size: 1.1em;
-            color: #FF6347; /* Tomato */
+            color: #FF6347;
         }
         .success-message {
             margin-top: 20px;
             font-size: 1.1em;
-            color: #32CD32; /* Lime Green */
+            color: #32CD32;
         }
         .contacts-list {
             text-align: left;
@@ -120,15 +116,40 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+        .telegram-info {
+            background: rgba(0, 123, 255, 0.1);
+            border: 1px solid rgba(0, 123, 255, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: left;
+        }
+        .telegram-info h3 {
+            color: #007AFF;
+            margin-bottom: 10px;
+        }
+        .telegram-info p {
+            margin: 5px 0;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎉 Telegram Birthday Importer</h1>
-        <p>Подключитесь к Telegram, чтобы импортировать дни рождения ваших друзей прямо в приложение BirthdayBuddy!</p>
+        <h1>🎉 BirthdayBuddy Import</h1>
+        <p>Импортируй дни рождения друзей из Telegram прямо в приложение BirthdayBuddy!</p>
 
-        <button class="button" id="connectButton">Подключиться к Telegram</button>
-        <button class="button" id="importButton" style="display: none;">Импортировать контакты</button>
+        <!-- Telegram Web App Info -->
+        <div class="telegram-info" id="telegramInfo" style="display: none;">
+            <h3>📱 Telegram Web App Info</h3>
+            <p><strong>Platform:</strong> <span id="platform">-</span></p>
+            <p><strong>Version:</strong> <span id="version">-</span></p>
+            <p><strong>User ID:</strong> <span id="userId">-</span></p>
+            <p><strong>Username:</strong> <span id="username">-</span></p>
+        </div>
+
+        <button class="button" id="connectButton">🔗 Подключиться к Telegram</button>
+        <button class="button" id="importButton" style="display: none;">📥 Импортировать контакты</button>
 
         <div class="status-message" id="statusMessage"></div>
         <div class="error-message" id="errorMessage"></div>
@@ -144,64 +165,35 @@
         const errorMessage = document.getElementById('errorMessage');
         const successMessage = document.getElementById('successMessage');
         const contactsList = document.getElementById('contactsList');
+        const telegramInfo = document.getElementById('telegramInfo');
 
-        // Simulate Telegram Web App API
-        window.Telegram = {
-            WebApp: {
-                initData: '', // This would be populated by Telegram
-                initDataUnsafe: {},
-                version: '6.0',
-                platform: 'ios',
-                isExpanded: false,
-                viewportHeight: window.innerHeight,
-                viewportStableHeight: window.innerHeight,
-                themeParams: {},
-                isClosingConfirmationEnabled: false,
-                headerColor: '#1a1a2e',
-                backgroundColor: '#1a1a2e',
-                BackButton: {
-                    isVisible: false,
-                    onClick: function() { console.log('Back button clicked'); }
-                },
-                MainButton: {
-                    text: 'CLOSE',
-                    color: '#8A2BE2',
-                    textColor: '#ffffff',
-                    isVisible: false,
-                    isActive: true,
-                    isProgressVisible: false,
-                    onClick: function() { console.log('Main button clicked'); }
-                },
-                HapticFeedback: {
-                    impactOccurred: function(style) { console.log('Haptic feedback:', style); },
-                    notificationOccurred: function(type) { console.log('Notification haptic feedback:', type); },
-                    selectionChanged: function() { console.log('Selection haptic feedback'); }
-                },
-                openLink: function(url) { window.open(url, '_blank'); },
-                openTelegramLink: function(url) { window.open(url, '_blank'); },
-                showPopup: function(params, callback) { console.log('Show popup:', params); if (callback) callback(null); },
-                showAlert: function(message, callback) { alert(message); if (callback) callback(); },
-                showConfirm: function(message, callback) { const result = confirm(message); if (callback) callback(result); },
-                ready: function() { console.log('Telegram Web App is ready!'); },
-                expand: function() {
-                    window.Telegram.WebApp.isExpanded = true;
-                    window.Telegram.WebApp.viewportHeight = window.innerHeight;
-                    window.Telegram.WebApp.viewportStableHeight = window.innerHeight;
-                    console.log('Telegram Web App expanded');
-                },
-                close: function() { console.log('Telegram Web App closed'); },
-                sendData: function(data) {
-                    // This is the bridge to the iOS app
-                    if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.telegramData) {
-                        window.webkit.messageHandlers.telegramData.postMessage(data);
-                        console.log('Data sent to iOS app:', data);
-                    } else {
-                        console.error('webkit.messageHandlers.telegramData not found. Cannot send data to iOS app.');
-                        errorMessage.textContent = 'Ошибка: Не удалось отправить данные в приложение.';
-                    }
+        // Check if we're in Telegram Web App
+        function checkTelegramWebApp() {
+            if (window.Telegram && window.Telegram.WebApp) {
+                console.log('✅ Telegram Web App detected');
+                
+                // Show Telegram info
+                telegramInfo.style.display = 'block';
+                document.getElementById('platform').textContent = window.Telegram.WebApp.platform || 'unknown';
+                document.getElementById('version').textContent = window.Telegram.WebApp.version || 'unknown';
+                
+                // Get user info
+                if (window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
+                    const user = window.Telegram.WebApp.initDataUnsafe.user;
+                    document.getElementById('userId').textContent = user.id || 'unknown';
+                    document.getElementById('username').textContent = user.username || user.first_name || 'unknown';
                 }
+                
+                // Initialize Telegram Web App
+                window.Telegram.WebApp.ready();
+                window.Telegram.WebApp.expand();
+                
+                return true;
+            } else {
+                console.log('❌ Not in Telegram Web App environment');
+                return false;
             }
-        };
+        }
 
         // Simulate connection to Telegram
         connectButton.addEventListener('click', () => {
@@ -209,10 +201,19 @@
             errorMessage.textContent = '';
             successMessage.textContent = '';
             
+            const isInTelegram = checkTelegramWebApp();
+            
             setTimeout(() => {
-                statusMessage.textContent = 'Успешно подключено! Теперь вы можете импортировать контакты.';
-                connectButton.style.display = 'none';
-                importButton.style.display = 'block';
+                if (isInTelegram) {
+                    statusMessage.textContent = '✅ Успешно подключено к Telegram Web App!';
+                    connectButton.style.display = 'none';
+                    importButton.style.display = 'block';
+                } else {
+                    // Fallback for testing
+                    statusMessage.textContent = '⚠️ Тестовый режим (не в Telegram)';
+                    connectButton.style.display = 'none';
+                    importButton.style.display = 'block';
+                }
             }, 1500);
         });
 
@@ -241,7 +242,16 @@
                     contacts: simulatedContacts
                 };
                 
-                window.Telegram.WebApp.sendData(JSON.stringify(dataToSend));
+                console.log('📤 Sending data to iOS app:', dataToSend);
+                
+                // Try to send via webkit.messageHandlers
+                if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.telegramData) {
+                    window.webkit.messageHandlers.telegramData.postMessage(JSON.stringify(dataToSend));
+                    console.log('✅ Data sent via webkit.messageHandlers');
+                } else {
+                    console.error('❌ webkit.messageHandlers.telegramData not found');
+                    errorMessage.textContent = 'Ошибка: Не удалось отправить данные в приложение.';
+                }
                 
                 statusMessage.textContent = '';
                 successMessage.textContent = `✅ Импортировано ${simulatedContacts.length} контактов!`;
@@ -264,8 +274,16 @@
 
         // Initialize on load
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('BirthdayBuddy Web App loaded');
-            statusMessage.textContent = 'Готов к подключению к Telegram';
+            console.log('🚀 BirthdayBuddy Telegram Web App loaded');
+            
+            // Check Telegram Web App environment
+            const isInTelegram = checkTelegramWebApp();
+            
+            if (isInTelegram) {
+                statusMessage.textContent = '✅ Telegram Web App обнаружен! Готов к подключению.';
+            } else {
+                statusMessage.textContent = '⚠️ Тестовый режим. Telegram Web App не обнаружен.';
+            }
         });
     </script>
 </body>
