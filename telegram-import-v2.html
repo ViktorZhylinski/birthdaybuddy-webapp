@@ -389,6 +389,7 @@
                 });
 
                 const data = await response.json();
+                console.log('API Response:', { status: response.status, data });
 
                 if (response.ok && data.success) {
                     sessionId = data.sessionId;
@@ -398,12 +399,18 @@
                         showStep('step-code');
                     }, 1000);
                 } else {
-                    throw new Error(data.error || 'Failed to send code');
+                    console.error('API Error:', { status: response.status, data });
+                    throw new Error(data.error || `API Error: ${response.status} - ${JSON.stringify(data)}`);
                 }
 
             } catch (error) {
                 console.error('Send code error:', error);
-                showStatus('phoneStatus', error.message, 'error');
+                console.error('Error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                    name: error.name
+                });
+                showStatus('phoneStatus', `Load Failed: ${error.message}`, 'error');
                 document.getElementById('sendCodeBtn').disabled = false;
             } finally {
                 document.getElementById('phoneLoader').classList.remove('show');
