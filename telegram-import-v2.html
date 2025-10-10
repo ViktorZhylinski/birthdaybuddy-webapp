@@ -573,13 +573,15 @@
                         document.getElementById('passwordLoader').classList.remove('show');
                         document.getElementById('passwordBtn').disabled = false;
                     } else if (progress.status === 'processing') {
-                        // Update status with progress
-                        showStatus('passwordStatus', `Processing... ${progress.percent}% (found ${progress.found} birthdays)`, 'info');
+                        // Update status with real-time progress
+                        const progressText = `🚀 Ultra Fast Processing... ${progress.percent}% (${progress.progress}/${progress.total})`;
+                        const foundText = progress.found > 0 ? ` 🎂 Found ${progress.found} birthdays!` : '';
+                        showStatus('passwordStatus', progressText + foundText, 'info');
                     }
                 } catch (error) {
                     console.error('Poll error:', error);
                 }
-            }, 2000); // Check every 2 seconds
+            }, 500); // Check every 500ms (faster updates!)
         }
 
         // Display contacts - sorted by nearest birthday
