@@ -476,11 +476,18 @@
                         
                         // Show password step with progress (reuse UI)
                         showStep('step-password');
-                        document.getElementById('passwordInput').style.display = 'none';
+                        
+                        // Hide ALL 2FA elements (including titles!)
+                        const passwordStep = document.getElementById('step-password');
+                        passwordStep.querySelector('.emoji').textContent = '🚀';
+                        passwordStep.querySelector('h1').textContent = 'Processing Contacts';
+                        passwordStep.querySelector('.subtitle').textContent = 'Finding birthdays from your Telegram contacts...';
+                        
+                        document.getElementById('password').parentElement.style.display = 'none'; // Hide input group
                         document.getElementById('passwordBtn').style.display = 'none';
-                        document.getElementById('backToCodeBtn').style.display = 'none';
+                        passwordStep.querySelector('.secondary').style.display = 'none'; // Hide back button
                         document.getElementById('passwordLoader').classList.add('show');
-                        showStatus('passwordStatus', 'Processing contacts...', 'info');
+                        showStatus('passwordStatus', 'Ultra Fast Processing...', 'info');
                         
                         // Start polling
                         pollProgress(sessionId);
