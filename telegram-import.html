@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Birthday Buddy - Import</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #020108 0%, #0f0728 50%, #1f1646 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        .hero {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 10px 20px rgba(138, 67, 194, 0.5));
+        }
+        
+        h1 {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #fff, #b490dc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .subtitle {
+            font-size: 16px;
+            opacity: 0.8;
+            line-height: 1.5;
+        }
+        
+        .privacy-items {
+            margin: 30px 0;
+        }
+        
+        .privacy-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            margin-bottom: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .privacy-item svg {
+            width: 20px;
+            height: 20px;
+            color: #4ade80;
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            margin: 20px 0;
+        }
+        
+        .file-input {
+            opacity: 0;
+            position: absolute;
+            z-index: -1;
+        }
+        
+        .file-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, #8c43c2, #6a2f8f);
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 10px 30px rgba(138, 67, 194, 0.5);
+        }
+        
+        .file-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(138, 67, 194, 0.6);
+        }
+        
+        .file-label:active {
+            transform: translateY(0);
+        }
+        
+        .file-name {
+            text-align: center;
+            margin-top: 12px;
+            font-size: 14px;
+            opacity: 0.7;
+        }
+        
+        .results {
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            padding: 16px;
+            background: rgba(74, 222, 128, 0.15);
+            border: 1px solid rgba(74, 222, 128, 0.3);
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-top: 4px;
+        }
+        
+        .contact-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 20px 0;
+            padding-right: 8px;
+        }
+        
+        .contact-item {
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .contact-name {
+            font-size: 15px;
+            font-weight: 600;
+        }
+        
+        .contact-date {
+            font-size: 13px;
+            opacity: 0.7;
+        }
+        
+        .import-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #4ade80, #22c55e);
+            border: none;
+            border-radius: 16px;
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(74, 222, 128, 0.4);
+            transition: transform 0.2s;
+        }
+        
+        .import-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .import-btn:active {
+            transform: translateY(0);
+        }
+        
+        .error {
+            padding: 16px;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #8c43c2;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(138, 67, 194, 0.5);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hero">
+            <div class="icon">🎂</div>
+            <h1>Birthday Buddy Import</h1>
+            <p class="subtitle">Upload your Telegram contacts export to import birthdays</p>
+        </div>
+        
+        <div class="privacy-items">
+            <div class="privacy-item">
+                <span>🔒</span>
+                <span>Processed in your browser only</span>
+            </div>
+            <div class="privacy-item">
+                <span>👁️</span>
+                <span>We never see your data</span>
+            </div>
+            <div class="privacy-item">
+                <span>👥</span>
+                <span>Only names & birthdays</span>
+            </div>
+        </div>
+        
+        <div id="uploadSection">
+            <div class="file-input-wrapper">
+                <input type="file" id="fileInput" class="file-input" accept=".json" onchange="handleFile(event)">
+                <label for="fileInput" class="file-label">
+                    <span>📁</span>
+                    <span>Select contacts.json</span>
+                </label>
+                <div id="fileName" class="file-name"></div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px; opacity: 0.6; font-size: 14px;">
+                <p>How to export:</p>
+                <p style="margin-top: 8px; font-size: 13px;">
+                    Telegram Desktop → Settings → Advanced →<br>
+                    Export Data → Contacts only → JSON format
+                </p>
+            </div>
+        </div>
+        
+        <div id="results" class="results">
+            <div class="stats" id="stats"></div>
+            <div class="contact-list" id="contactList"></div>
+            <button class="import-btn" onclick="sendToApp()">
+                Send to Birthday Buddy 🚀
+            </button>
+        </div>
+        
+        <div id="loading" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Processing...</p>
+        </div>
+        
+        <div id="error" class="error" style="display: none;"></div>
+    </div>
+    
+    <script>
+        // Initialize Telegram Web App
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+        
+        let parsedContacts = [];
+        
+        function handleFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('error').style.display = 'none';
+            
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const json = JSON.parse(e.target.result);
+                    processContacts(json);
+                } catch (err) {
+                    showError('Invalid JSON file. Please export from Telegram Desktop.');
+                }
+            };
+            
+            reader.onerror = function() {
+                showError('Failed to read file. Please try again.');
+            };
+            
+            reader.readAsText(file);
+        }
+        
+        function processContacts(telegram) {
+            try {
+                const contacts = telegram.contacts?.list || [];
+                
+                parsedContacts = contacts
+                    .filter(c => c.date_of_birth)
+                    .map(c => ({
+                        name: `${c.first_name || ''} ${c.last_name || ''}`.trim(),
+                        birthday: c.date_of_birth
+                    }))
+                    .filter(c => c.name); // Only with names
+                
+                if (parsedContacts.length === 0) {
+                    showError('No birthdays found in this file. Make sure your Telegram contacts have birthdays set.');
+                    return;
+                }
+                
+                displayResults(parsedContacts);
+            } catch (err) {
+                showError('Failed to process file: ' + err.message);
+            }
+        }
+        
+        function displayResults(contacts) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('uploadSection').style.display = 'none';
+            document.getElementById('results').style.display = 'block';
+            
+            // Stats
+            const statsHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${contacts.length}</div>
+                    <div class="stat-label">Found</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">✅</div>
+                    <div class="stat-label">Ready</div>
+                </div>
+            `;
+            document.getElementById('stats').innerHTML = statsHTML;
+            
+            // Contact list
+            const listHTML = contacts.map(c => `
+                <div class="contact-item">
+                    <div>
+                        <div class="contact-name">${c.name}</div>
+                        <div class="contact-date">${formatDate(c.birthday)}</div>
+                    </div>
+                    <span>✅</span>
+                </div>
+            `).join('');
+            document.getElementById('contactList').innerHTML = listHTML;
+        }
+        
+        function formatDate(dateStr) {
+            // Try parsing different formats
+            let date;
+            if (dateStr.includes('-')) {
+                // ISO format: YYYY-MM-DD
+                date = new Date(dateStr);
+            } else if (dateStr.includes('.')) {
+                // Telegram format: DD.MM.YYYY
+                const parts = dateStr.split('.');
+                date = new Date(parts[2], parts[1] - 1, parts[0]);
+            } else {
+                return dateStr;
+            }
+            
+            return date.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+        }
+        
+        function sendToApp() {
+            if (parsedContacts.length === 0) return;
+            
+            // Encode data as base64 JSON
+            const data = btoa(JSON.stringify(parsedContacts));
+            
+            // Send to iOS app via URL scheme
+            const url = `birthdaybuddy://import?data=${data}`;
+            
+            // Try to open iOS app
+            window.location.href = url;
+            
+            // Show success message
+            tg.showAlert(`Sending ${parsedContacts.length} birthdays to Birthday Buddy...`, () => {
+                tg.close();
+            });
+        }
+        
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            const errorEl = document.getElementById('error');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+            
+            setTimeout(() => {
+                errorEl.style.display = 'none';
+                document.getElementById('uploadSection').style.display = 'block';
+            }, 5000);
+        }
+        
+        // Customize Telegram Web App UI
+        tg.setHeaderColor('#020108');
+        tg.setBackgroundColor('#020108');
+    </script>
+</body>
+</html>
+

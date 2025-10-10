@@ -211,13 +211,6 @@
             opacity: 0.7;
         }
 
-        .contact-days-until {
-            font-size: 11px;
-            color: #4facfe;
-            font-weight: 600;
-            margin-top: 2px;
-        }
-
         .stats {
             text-align: center;
             padding: 16px;
@@ -351,7 +344,7 @@
 
     <script>
         // Configuration
-        const BACKEND_URL = 'https://birthdaybuddy-backend-production.up.railway.app'; // Replace with your Railway/Heroku URL
+        const BACKEND_URL = 'http://localhost:3000'; // Replace with your Railway/Heroku URL
         
         let sessionId = null;
         let phoneNumber = null;
@@ -368,8 +361,8 @@
             const phoneInput = document.getElementById('phone');
             const phone = phoneInput.value.trim();
 
-            // Validate phone (more flexible)
-            if (!phone || !phone.match(/^\+\d{7,15}$/)) {
+            // Validate phone
+            if (!phone || !phone.match(/^\+\d{10,15}$/)) {
                 showStatus('phoneStatus', 'Please enter a valid phone number (e.g., +1234567890)', 'error');
                 return;
             }
@@ -379,7 +372,7 @@
             // UI feedback
             document.getElementById('sendCodeBtn').disabled = true;
             document.getElementById('phoneLoader').classList.add('show');
-            showStatus('phoneStatus', 'Sending code... This may take up to 2 minutes', 'info');
+            showStatus('phoneStatus', 'Sending code...', 'info');
 
             try {
                 const response = await fetch(`${BACKEND_URL}/api/auth/send-code`, {
@@ -389,39 +382,21 @@
                 });
 
                 const data = await response.json();
-                console.log('API Response:', { status: response.status, data });
 
                 if (response.ok && data.success) {
                     sessionId = data.sessionId;
-                    showStatus('phoneStatus', 'Code sent! Check Telegram app (may take 1-2 minutes)', 'success');
+                    showStatus('phoneStatus', 'Code sent! Check Telegram app', 'success');
                     
                     setTimeout(() => {
                         showStep('step-code');
-                    }, 2000);
+                    }, 1000);
                 } else {
-                    console.error('API Error:', { status: response.status, data });
-                    throw new Error(data.error || `API Error: ${response.status} - ${JSON.stringify(data)}`);
+                    throw new Error(data.error || 'Failed to send code');
                 }
 
             } catch (error) {
                 console.error('Send code error:', error);
-                console.error('Error details:', {
-                    message: error.message,
-                    stack: error.stack,
-                    name: error.name
-                });
-                
-                // Better error handling
-                let errorMessage = 'Failed to send code';
-                if (error.message.includes('Failed to fetch')) {
-                    errorMessage = 'Network error. Check your internet connection.';
-                } else if (error.message.includes('API Error')) {
-                    errorMessage = 'Server error. Please try again.';
-                } else {
-                    errorMessage = error.message;
-                }
-                
-                showStatus('phoneStatus', errorMessage, 'error');
+                showStatus('phoneStatus', error.message, 'error');
                 document.getElementById('sendCodeBtn').disabled = false;
             } finally {
                 document.getElementById('phoneLoader').classList.remove('show');
@@ -470,26 +445,7 @@
                         }, 1000);
                     } else if (data.processing) {
                         // Backend processing in background, start polling
-                        console.log('🚀 Starting progress polling for sessionId:', sessionId);
                         showStatus('codeStatus', 'Code verified! Processing contacts...', 'success');
-                        document.getElementById('codeLoader').classList.remove('show');
-                        
-                        // Show password step with progress (reuse UI)
-                        showStep('step-password');
-                        
-                        // Hide ALL 2FA elements (including titles!)
-                        const passwordStep = document.getElementById('step-password');
-                        passwordStep.querySelector('.emoji').textContent = '🚀';
-                        passwordStep.querySelector('h1').textContent = 'Processing Contacts';
-                        passwordStep.querySelector('.subtitle').textContent = 'Finding birthdays from your Telegram contacts...';
-                        
-                        document.getElementById('password').parentElement.style.display = 'none'; // Hide input group
-                        document.getElementById('passwordBtn').style.display = 'none';
-                        passwordStep.querySelector('.secondary').style.display = 'none'; // Hide back button
-                        document.getElementById('passwordLoader').classList.add('show');
-                        showStatus('passwordStatus', 'Ultra Fast Processing...', 'info');
-                        
-                        // Start polling
                         pollProgress(sessionId);
                     } else {
                         // Old path (direct contacts)
@@ -592,35 +548,29 @@
                         document.getElementById('passwordLoader').classList.remove('show');
                         document.getElementById('passwordBtn').disabled = false;
                     } else if (progress.status === 'processing') {
-                        // Update status with real-time progress
-                        const progressText = `🚀 Ultra Fast Processing... ${progress.percent}% (${progress.progress}/${progress.total})`;
-                        const foundText = progress.found > 0 ? ` 🎂 Found ${progress.found} birthdays!` : '';
-                        showStatus('passwordStatus', progressText + foundText, 'info');
+                        // Update status with progress
+                        showStatus('passwordStatus', `Processing... ${progress.percent}% (found ${progress.found} birthdays)`, 'info');
                     }
                 } catch (error) {
                     console.error('Poll error:', error);
                 }
-            }, 500); // Check every 500ms (faster updates!)
+            }, 2000); // Check every 2 seconds
         }
 
-        // Display contacts - sorted by nearest birthday
+        // Display contacts
         function displayContacts() {
             document.getElementById('contactCount').textContent = contacts.length;
-
-            // Sort contacts by nearest birthday
-            const sortedContacts = sortContactsByNearestBirthday(contacts);
 
             const listEl = document.getElementById('contactList');
             listEl.innerHTML = '';
 
-            sortedContacts.slice(0, 10).forEach(contact => {
+            contacts.slice(0, 10).forEach(contact => {
                 const item = document.createElement('div');
                 item.className = 'contact-item';
                 item.innerHTML = `
                     <div>
                         <div class="contact-name">${contact.name}</div>
                         <div class="contact-birthday">🎂 ${formatDate(contact.birthday)}</div>
-                        <div class="contact-days-until">${getDaysUntilBirthday(contact.birthday)}</div>
                     </div>
                 `;
                 listEl.appendChild(item);
@@ -637,98 +587,29 @@
             }
         }
 
-        // Sort contacts by nearest birthday
-        function sortContactsByNearestBirthday(contacts) {
-            const today = new Date();
-            const currentYear = today.getFullYear();
-            
-            return contacts.sort((a, b) => {
-                const dateA = new Date(a.birthday);
-                const dateB = new Date(b.birthday);
-                
-                // Set to current year
-                dateA.setFullYear(currentYear);
-                dateB.setFullYear(currentYear);
-                
-                // If birthday has passed this year, set to next year
-                if (dateA < today) {
-                    dateA.setFullYear(currentYear + 1);
-                }
-                if (dateB < today) {
-                    dateB.setFullYear(currentYear + 1);
-                }
-                
-                // Calculate days until birthday
-                const daysA = Math.ceil((dateA - today) / (1000 * 60 * 60 * 24));
-                const daysB = Math.ceil((dateB - today) / (1000 * 60 * 60 * 24));
-                
-                return daysA - daysB;
-            });
-        }
-
-        // Get days until birthday
-        function getDaysUntilBirthday(birthday) {
-            const today = new Date();
-            const currentYear = today.getFullYear();
-            const birthDate = new Date(birthday);
-            birthDate.setFullYear(currentYear);
-            
-            // If birthday has passed this year, set to next year
-            if (birthDate < today) {
-                birthDate.setFullYear(currentYear + 1);
-            }
-            
-            const daysUntil = Math.ceil((birthDate - today) / (1000 * 60 * 60 * 24));
-            
-            if (daysUntil === 0) {
-                return '🎉 Today!';
-            } else if (daysUntil === 1) {
-                return '📅 Tomorrow';
-            } else if (daysUntil <= 7) {
-                return `📅 In ${daysUntil} days`;
-            } else if (daysUntil <= 30) {
-                return `📅 In ${daysUntil} days`;
-            } else {
-                return `📅 In ${daysUntil} days`;
-            }
-        }
-
-        // Send to iOS app - DIRECT DEEP LINK (NO encoding!)
+        // Send to iOS app
         function sendToiOS() {
             if (contacts.length === 0) {
                 alert('No contacts to import');
                 return;
             }
 
-            console.log('🚀 CREATING DEEP LINK...', contacts.length, 'contacts');
+            // Encode contacts as base64
+            const jsonString = JSON.stringify(contacts);
+            const base64Data = btoa(jsonString);
             
-            try {
-                // Don't use encodeURIComponent for data - causes issues with Cyrillic!
-                // Instead, use btoa directly (it handles UTF-8)
-                const jsonString = JSON.stringify(contacts);
-                console.log('📦 JSON:', jsonString);
-                
-                // Convert to base64
-                const base64Data = btoa(unescape(encodeURIComponent(jsonString)));
-                console.log('📦 Base64 length:', base64Data.length);
-                
-                // Create deep link WITHOUT encoding the base64 part!
-                const deepLink = `birthdaybuddy://import?data=${base64Data}`;
-                console.log('🔗 Deep link created!', deepLink.substring(0, 100));
-                
-                // Try to open
-                window.location.href = deepLink;
-                console.log('📱 Opened with window.location!');
-                
-                // Show simple success
-                setTimeout(() => {
-                    alert(`✅ Проверь Birthday Buddy app!\n\nЕсли app не открылся - скажи мне!`);
-                }, 1000);
-                
-            } catch (error) {
-                console.error('❌ ERROR:', error);
-                alert(`❌ Ошибка: ${error.message}\n\nТочный текст ошибки для разработчика!`);
-            }
+            // Deep link to iOS app
+            const deepLink = `birthdaybuddy://import?data=${base64Data}`;
+            
+            // Try to open iOS app
+            window.location.href = deepLink;
+            
+            // Close Telegram WebApp if available
+            setTimeout(() => {
+                if (window.Telegram && window.Telegram.WebApp) {
+                    window.Telegram.WebApp.close();
+                }
+            }, 500);
         }
 
         // Navigation

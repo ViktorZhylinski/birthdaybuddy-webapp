@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opening Birthday Buddy...</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            color: white;
+        }
+        .container {
+            text-align: center;
+            padding: 40px;
+        }
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 30px auto;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="loader"></div>
+        <h1>Opening Birthday Buddy...</h1>
+        <p>Importing your contacts</p>
+    </div>
+    
+    <script>
+        // Get code from URL
+        const pathParts = window.location.pathname.split('/');
+        const code = pathParts[pathParts.length - 1];
+        
+        console.log('📥 Import code:', code);
+        
+        // Open iOS app with custom URL scheme
+        const deepLink = `birthdaybuddy://importcode?code=${code}`;
+        console.log('🔗 Opening:', deepLink);
+        
+        window.location.href = deepLink;
+        
+        // Fallback message
+        setTimeout(() => {
+            document.body.innerHTML = `
+                <div class="container">
+                    <h1>✅ Opening Birthday Buddy</h1>
+                    <p>If app didn't open, make sure Birthday Buddy is installed</p>
+                    <p style="margin-top: 20px; font-size: 14px; opacity: 0.8;">Code: ${code}</p>
+                </div>
+            `;
+        }, 2000);
+    </script>
+</body>
+</html>
+
