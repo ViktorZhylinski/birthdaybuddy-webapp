@@ -470,7 +470,19 @@
                         }, 1000);
                     } else if (data.processing) {
                         // Backend processing in background, start polling
+                        console.log('🚀 Starting progress polling for sessionId:', sessionId);
                         showStatus('codeStatus', 'Code verified! Processing contacts...', 'success');
+                        document.getElementById('codeLoader').classList.remove('show');
+                        
+                        // Show password step with progress (reuse UI)
+                        showStep('step-password');
+                        document.getElementById('passwordInput').style.display = 'none';
+                        document.getElementById('passwordBtn').style.display = 'none';
+                        document.getElementById('backToCodeBtn').style.display = 'none';
+                        document.getElementById('passwordLoader').classList.add('show');
+                        showStatus('passwordStatus', 'Processing contacts...', 'info');
+                        
+                        // Start polling
                         pollProgress(sessionId);
                     } else {
                         // Old path (direct contacts)
