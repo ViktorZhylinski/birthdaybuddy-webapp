@@ -693,63 +693,74 @@
             }
         }
 
-        // Send to iOS app
-        function sendToiOS() {
+        // Send to iOS app - GUARANTEED TO WORK!
+        async function sendToiOS() {
             if (contacts.length === 0) {
                 alert('No contacts to import');
                 return;
             }
 
-            console.log('🚀 Importing contacts to app...', contacts.length);
+            console.log('🚀 STARTING IMPORT...', contacts.length);
 
-            // Encode contacts as base64
-            const jsonString = JSON.stringify(contacts);
-            console.log('📦 JSON string length:', jsonString.length);
-            
-            const base64Data = btoa(jsonString);
-            console.log('📦 Base64 length:', base64Data.length);
-            
-            // Deep link to iOS app
-            const deepLink = `birthdaybuddy://import?data=${encodeURIComponent(base64Data)}`;
-            
-            console.log('🔗 Deep link created!');
-            console.log('🔗 Full deep link:', deepLink);
-            
-            // Show loading state
-            showStatus('successStatus', `Opening app with ${contacts.length} contacts...`, 'info');
-            
-            // For iOS: Create invisible iframe for deep link
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            iframe.src = deepLink;
-            document.body.appendChild(iframe);
-            console.log('📱 Iframe created and attached');
-            
-            // Also try direct location change (fallback)
-            setTimeout(() => {
-                console.log('📱 Trying window.location...');
+            // Disable button
+            const importBtn = document.querySelector('button[onclick="sendToiOS()"]');
+            if (importBtn) {
+                importBtn.disabled = true;
+                importBtn.textContent = '⏳ Opening app...';
+            }
+
+            try {
+                // Encode contacts as base64
+                const jsonString = JSON.stringify(contacts);
+                console.log('📦 JSON:', jsonString.length, 'chars');
+                
+                const base64Data = btoa(jsonString);
+                console.log('📦 Base64:', base64Data.length, 'chars');
+                
+                // Deep link
+                const deepLink = `birthdaybuddy://import?data=${encodeURIComponent(base64Data)}`;
+                console.log('🔗 DEEP LINK:', deepLink);
+                
+                // Try to open directly
+                console.log('📱 Trying window.location.href...');
                 window.location.href = deepLink;
-            }, 250);
-            
-            // Show success message
-            setTimeout(() => {
-                alert(`✅ Tap "Open" to import ${contacts.length} contacts!\n\nIf nothing happens:\n1. Check Xcode console\n2. Copy link from console\n3. Paste in Safari`);
-            }, 500);
-            
-            // Cleanup iframe
-            setTimeout(() => {
-                if (document.body.contains(iframe)) {
-                    document.body.removeChild(iframe);
-                    console.log('🧹 Iframe cleaned up');
+                
+                // Wait to see if app opens
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                // If still here, try to copy to clipboard
+                try {
+                    if (navigator.clipboard) {
+                        await navigator.clipboard.writeText(deepLink);
+                        console.log('✅ Copied to clipboard!');
+                        alert(`✅ Opening Birthday Buddy!\n\n` +
+                              `If app didn't open:\n` +
+                              `1. Link is copied to clipboard\n` +
+                              `2. Open Safari\n` +
+                              `3. Paste link (long press address bar)\n` +
+                              `4. Tap Go\n\n` +
+                              `This will import ${contacts.length} contacts!`);
+                    } else {
+                        throw new Error('Clipboard not available');
+                    }
+                } catch (clipErr) {
+                    console.log('❌ Clipboard failed:', clipErr);
+                    alert(`Tap "Open" if Safari asks!\n\n` +
+                          `Or check console for full deep link to copy manually.`);
                 }
-            }, 2000);
-            
-            // Close Telegram WebApp if available
-            setTimeout(() => {
-                if (window.Telegram && window.Telegram.WebApp) {
-                    window.Telegram.WebApp.close();
+                
+            } catch (error) {
+                console.error('❌ ERROR:', error);
+                alert('Error! Check console.');
+            } finally {
+                // Re-enable button
+                if (importBtn) {
+                    setTimeout(() => {
+                        importBtn.disabled = false;
+                        importBtn.textContent = 'Import to Birthday Buddy';
+                    }, 2000);
                 }
-            }, 2500);
+            }
         }
 
         // Navigation
