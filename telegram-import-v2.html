@@ -693,54 +693,70 @@
             }
         }
 
-        // Send to iOS app - ULTRA SIMPLE VERSION!
-        function sendToiOS() {
+        // Send to iOS app - AUTOMATIC STORAGE!
+        async function sendToiOS() {
             if (contacts.length === 0) {
                 alert('No contacts to import');
                 return;
             }
 
-            console.log('🚀 STARTING IMPORT...', contacts.length);
-
-            // Show status
-            showStatus('successStatus', 'Opening Birthday Buddy app...', 'info');
+            console.log('🚀 STORING CONTACTS...', contacts.length);
+            
+            // Disable button
+            const btn = document.querySelector('button[onclick="sendToiOS()"]');
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = '⏳ Saving...';
+            }
 
             try {
-                // Encode contacts as base64
-                const jsonString = JSON.stringify(contacts);
-                console.log('📦 JSON:', jsonString.length, 'chars');
+                // Store contacts on backend
+                const response = await fetch(`${BACKEND_URL}/api/import/store`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contacts })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to store contacts');
+                }
+
+                const data = await response.json();
+                console.log('✅ Stored with code:', data.code);
+
+                // Show success with code
+                showStatus('successStatus', `✅ Ready to import!`, 'success');
                 
-                const base64Data = btoa(jsonString);
-                console.log('📦 Base64:', base64Data.length, 'chars');
+                // Show code in big text
+                const codeEl = document.createElement('div');
+                codeEl.style.cssText = 'margin: 30px 0; padding: 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; text-align: center;';
+                codeEl.innerHTML = `
+                    <div style="color: white; font-size: 16px; margin-bottom: 15px; opacity: 0.9;">Your Import Code</div>
+                    <div style="color: white; font-size: 48px; font-weight: bold; letter-spacing: 8px; font-family: monospace;">${data.code}</div>
+                    <div style="color: white; font-size: 14px; margin-top: 15px; opacity: 0.8;">Valid for 15 minutes</div>
+                    <div style="color: white; font-size: 14px; margin-top: 25px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.3);">
+                        <div style="margin-bottom: 10px;">📱 Open Birthday Buddy app</div>
+                        <div style="margin-bottom: 10px;">⚙️ Go to Settings → Import from Telegram</div>
+                        <div>🔢 Enter code: <strong>${data.code}</strong></div>
+                    </div>
+                `;
                 
-                // Deep link
-                const deepLink = `birthdaybuddy://import?data=${encodeURIComponent(base64Data)}`;
-                console.log('🔗 DEEP LINK (full):', deepLink);
-                
-                // Show on page
-                const linkEl = document.createElement('div');
-                linkEl.style.cssText = 'margin: 20px 0; padding: 15px; background: #f5f5f5; border-radius: 8px; word-break: break-all; font-size: 12px; max-height: 100px; overflow: auto;';
-                linkEl.textContent = deepLink;
-                document.querySelector('#step-success .card').appendChild(linkEl);
-                
-                // Try to open
-                console.log('📱 Opening with window.location...');
-                window.location.href = deepLink;
-                
-                // Show instructions
-                setTimeout(() => {
-                    alert(`📱 Opening Birthday Buddy!\n\n` +
-                          `If app didn't open:\n\n` +
-                          `1. Copy the long link shown on the page\n` +
-                          `2. Open Safari (new tab)\n` +
-                          `3. Paste in address bar\n` +
-                          `4. Tap Go\n\n` +
-                          `✅ This will import ${contacts.length} contacts!`);
-                }, 1000);
-                
+                const successCard = document.querySelector('#step-success .card');
+                successCard.insertBefore(codeEl, successCard.firstChild);
+
+                // Update button
+                if (btn) {
+                    btn.textContent = '✅ Saved! Use code above';
+                    btn.style.background = '#10b981';
+                }
+
             } catch (error) {
                 console.error('❌ ERROR:', error);
-                alert(`❌ Error: ${error.message}\n\nThe deep link is shown on the page - copy it manually!`);
+                showStatus('successStatus', `❌ Failed to save: ${error.message}`, 'error');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = 'Try Again';
+                }
             }
         }
 
