@@ -693,70 +693,75 @@
             }
         }
 
-        // Send to iOS app - AUTOMATIC STORAGE!
-        async function sendToiOS() {
+        // Send to iOS app - SHOW FULL DEBUG INFO!
+        function sendToiOS() {
             if (contacts.length === 0) {
                 alert('No contacts to import');
                 return;
             }
 
-            console.log('🚀 STORING CONTACTS...', contacts.length);
+            console.log('🚀 BUTTON CLICKED!', contacts.length, 'contacts');
             
-            // Disable button
-            const btn = document.querySelector('button[onclick="sendToiOS()"]');
-            if (btn) {
-                btn.disabled = true;
-                btn.textContent = '⏳ Saving...';
-            }
-
+            // Prepare detailed info
+            let debugInfo = '📊 DEBUG INFO:\n\n';
+            debugInfo += `✅ Button clicked successfully\n`;
+            debugInfo += `📦 Contacts found: ${contacts.length}\n\n`;
+            
+            // Show first 3 contacts
+            debugInfo += '👥 First 3 contacts:\n';
+            contacts.slice(0, 3).forEach((c, i) => {
+                debugInfo += `${i+1}. ${c.name} - ${c.birthday}\n`;
+            });
+            
+            debugInfo += `\n🔧 Technical details:\n`;
+            debugInfo += `- Backend URL: ${BACKEND_URL}\n`;
+            debugInfo += `- Browser: ${navigator.userAgent.includes('iPhone') ? 'iPhone Safari' : 'Other'}\n`;
+            debugInfo += `- Total contacts: ${contacts.length}\n`;
+            
+            // Check if we can stringify
             try {
-                // Store contacts on backend
-                const response = await fetch(`${BACKEND_URL}/api/import/store`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contacts })
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to store contacts');
-                }
-
-                const data = await response.json();
-                console.log('✅ Stored with code:', data.code);
-
-                // Show success with code
-                showStatus('successStatus', `✅ Ready to import!`, 'success');
+                const json = JSON.stringify(contacts);
+                debugInfo += `- JSON size: ${json.length} chars\n`;
+                debugInfo += `- Can stringify: ✅ YES\n`;
+            } catch (e) {
+                debugInfo += `- Can stringify: ❌ NO (${e.message})\n`;
+            }
+            
+            debugInfo += `\n❓ NEXT STEPS:\n`;
+            debugInfo += `\nOption 1: Deep Link\n`;
+            debugInfo += `- Tap OK\n`;
+            debugInfo += `- I'll try to open the app\n\n`;
+            debugInfo += `Option 2: Manual\n`;
+            debugInfo += `- If nothing happens\n`;
+            debugInfo += `- Tell developer what you see\n`;
+            
+            // Show alert
+            alert(debugInfo);
+            
+            // Try deep link anyway
+            try {
+                const jsonString = JSON.stringify(contacts);
+                const base64Data = btoa(jsonString);
+                const deepLink = `birthdaybuddy://import?data=${encodeURIComponent(base64Data)}`;
                 
-                // Show code in big text
-                const codeEl = document.createElement('div');
-                codeEl.style.cssText = 'margin: 30px 0; padding: 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; text-align: center;';
-                codeEl.innerHTML = `
-                    <div style="color: white; font-size: 16px; margin-bottom: 15px; opacity: 0.9;">Your Import Code</div>
-                    <div style="color: white; font-size: 48px; font-weight: bold; letter-spacing: 8px; font-family: monospace;">${data.code}</div>
-                    <div style="color: white; font-size: 14px; margin-top: 15px; opacity: 0.8;">Valid for 15 minutes</div>
-                    <div style="color: white; font-size: 14px; margin-top: 25px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.3);">
-                        <div style="margin-bottom: 10px;">📱 Open Birthday Buddy app</div>
-                        <div style="margin-bottom: 10px;">⚙️ Go to Settings → Import from Telegram</div>
-                        <div>🔢 Enter code: <strong>${data.code}</strong></div>
-                    </div>
-                `;
+                console.log('🔗 Deep link length:', deepLink.length);
+                console.log('🔗 Trying to open...');
                 
-                const successCard = document.querySelector('#step-success .card');
-                successCard.insertBefore(codeEl, successCard.firstChild);
-
-                // Update button
-                if (btn) {
-                    btn.textContent = '✅ Saved! Use code above';
-                    btn.style.background = '#10b981';
-                }
-
+                // Try to open
+                window.location.href = deepLink;
+                
+                // Show follow-up
+                setTimeout(() => {
+                    const followUp = `Did Birthday Buddy app open?\n\n` +
+                                   `YES → Great! Contacts should import\n\n` +
+                                   `NO → Deep link not working from Safari\n` +
+                                   `Need different approach (code-based)\n\n` +
+                                   `Tell developer which one!`;
+                    alert(followUp);
+                }, 2000);
+                
             } catch (error) {
-                console.error('❌ ERROR:', error);
-                showStatus('successStatus', `❌ Failed to save: ${error.message}`, 'error');
-                if (btn) {
-                    btn.disabled = false;
-                    btn.textContent = 'Try Again';
-                }
+                alert(`❌ Error creating deep link:\n\n${error.message}\n\nThis means we need code-based import!`);
             }
         }
 
