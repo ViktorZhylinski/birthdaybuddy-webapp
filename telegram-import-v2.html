@@ -211,6 +211,13 @@
             opacity: 0.7;
         }
 
+        .contact-days-until {
+            font-size: 11px;
+            color: #4facfe;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
         .stats {
             text-align: center;
             padding: 16px;
@@ -557,20 +564,24 @@
             }, 2000); // Check every 2 seconds
         }
 
-        // Display contacts
+        // Display contacts - sorted by nearest birthday
         function displayContacts() {
             document.getElementById('contactCount').textContent = contacts.length;
+
+            // Sort contacts by nearest birthday
+            const sortedContacts = sortContactsByNearestBirthday(contacts);
 
             const listEl = document.getElementById('contactList');
             listEl.innerHTML = '';
 
-            contacts.slice(0, 10).forEach(contact => {
+            sortedContacts.slice(0, 10).forEach(contact => {
                 const item = document.createElement('div');
                 item.className = 'contact-item';
                 item.innerHTML = `
                     <div>
                         <div class="contact-name">${contact.name}</div>
                         <div class="contact-birthday">🎂 ${formatDate(contact.birthday)}</div>
+                        <div class="contact-days-until">${getDaysUntilBirthday(contact.birthday)}</div>
                     </div>
                 `;
                 listEl.appendChild(item);
@@ -584,6 +595,62 @@
                 more.style.fontSize = '14px';
                 more.textContent = `+ ${contacts.length - 10} more`;
                 listEl.appendChild(more);
+            }
+        }
+
+        // Sort contacts by nearest birthday
+        function sortContactsByNearestBirthday(contacts) {
+            const today = new Date();
+            const currentYear = today.getFullYear();
+            
+            return contacts.sort((a, b) => {
+                const dateA = new Date(a.birthday);
+                const dateB = new Date(b.birthday);
+                
+                // Set to current year
+                dateA.setFullYear(currentYear);
+                dateB.setFullYear(currentYear);
+                
+                // If birthday has passed this year, set to next year
+                if (dateA < today) {
+                    dateA.setFullYear(currentYear + 1);
+                }
+                if (dateB < today) {
+                    dateB.setFullYear(currentYear + 1);
+                }
+                
+                // Calculate days until birthday
+                const daysA = Math.ceil((dateA - today) / (1000 * 60 * 60 * 24));
+                const daysB = Math.ceil((dateB - today) / (1000 * 60 * 60 * 24));
+                
+                return daysA - daysB;
+            });
+        }
+
+        // Get days until birthday
+        function getDaysUntilBirthday(birthday) {
+            const today = new Date();
+            const currentYear = today.getFullYear();
+            const birthDate = new Date(birthday);
+            birthDate.setFullYear(currentYear);
+            
+            // If birthday has passed this year, set to next year
+            if (birthDate < today) {
+                birthDate.setFullYear(currentYear + 1);
+            }
+            
+            const daysUntil = Math.ceil((birthDate - today) / (1000 * 60 * 60 * 24));
+            
+            if (daysUntil === 0) {
+                return '🎉 Today!';
+            } else if (daysUntil === 1) {
+                return '📅 Tomorrow';
+            } else if (daysUntil <= 7) {
+                return `📅 In ${daysUntil} days`;
+            } else if (daysUntil <= 30) {
+                return `📅 In ${daysUntil} days`;
+            } else {
+                return `📅 In ${daysUntil} days`;
             }
         }
 
