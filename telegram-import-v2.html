@@ -681,22 +681,44 @@
                 return;
             }
 
+            console.log('🚀 Importing contacts to app...', contacts.length);
+
             // Encode contacts as base64
             const jsonString = JSON.stringify(contacts);
             const base64Data = btoa(jsonString);
             
             // Deep link to iOS app
-            const deepLink = `birthdaybuddy://import?data=${base64Data}`;
+            const deepLink = `birthdaybuddy://import?data=${encodeURIComponent(base64Data)}`;
             
-            // Try to open iOS app
-            window.location.href = deepLink;
+            console.log('🔗 Deep link:', deepLink.substring(0, 100) + '...');
+            
+            // For iOS: Create invisible iframe for deep link
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = deepLink;
+            document.body.appendChild(iframe);
+            
+            // Also try direct location change (fallback)
+            setTimeout(() => {
+                window.location.href = deepLink;
+            }, 100);
+            
+            // Show success message
+            setTimeout(() => {
+                alert(`✅ Opening Birthday Buddy app with ${contacts.length} contacts!`);
+            }, 200);
+            
+            // Cleanup iframe
+            setTimeout(() => {
+                document.body.removeChild(iframe);
+            }, 1000);
             
             // Close Telegram WebApp if available
             setTimeout(() => {
                 if (window.Telegram && window.Telegram.WebApp) {
                     window.Telegram.WebApp.close();
                 }
-            }, 500);
+            }, 1500);
         }
 
         // Navigation
