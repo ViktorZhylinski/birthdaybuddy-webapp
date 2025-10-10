@@ -693,79 +693,41 @@
             }
         }
 
-        // Send to iOS app - CODE-BASED (works with Cyrillic!)
-        async function sendToiOS() {
+        // Send to iOS app - DIRECT DEEP LINK (NO encoding!)
+        function sendToiOS() {
             if (contacts.length === 0) {
                 alert('No contacts to import');
                 return;
             }
 
-            console.log('🚀 STORING...', contacts.length, 'contacts');
+            console.log('🚀 CREATING DEEP LINK...', contacts.length, 'contacts');
             
-            const btn = document.querySelector('button[onclick="sendToiOS()"]');
-            if (btn) {
-                btn.disabled = true;
-                btn.textContent = '⏳ Saving...';
-            }
-
             try {
-                // Store on backend
-                const response = await fetch(`${BACKEND_URL}/api/import/store`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contacts })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Server error: ${response.status}`);
-                }
-
-                const data = await response.json();
-                console.log('✅ Stored! Code:', data.code);
-
-                // Show BIG code
-                const codeBox = document.createElement('div');
-                codeBox.style.cssText = 'margin: 30px 0; padding: 40px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 20px; text-align: center;';
-                codeBox.innerHTML = `
-                    <div style="color: white; font-size: 18px; margin-bottom: 20px; font-weight: 500;">
-                        ✅ ${contacts.length} контактов сохранены!
-                    </div>
-                    <div style="color: white; font-size: 64px; font-weight: bold; letter-spacing: 12px; font-family: 'Courier New', monospace; margin: 20px 0;">
-                        ${data.code}
-                    </div>
-                    <div style="color: rgba(255,255,255,0.9); font-size: 14px; margin-top: 20px;">
-                        Код действителен 15 минут
-                    </div>
-                    <div style="margin-top: 30px; padding-top: 25px; border-top: 2px solid rgba(255,255,255,0.3);">
-                        <div style="color: white; font-size: 16px; margin-bottom: 15px; font-weight: 500;">
-                            📱 Инструкция:
-                        </div>
-                        <div style="color: rgba(255,255,255,0.95); font-size: 15px; line-height: 1.8;">
-                            1. Открой Birthday Buddy app<br>
-                            2. Перейди в Settings → Import from Telegram<br>
-                            3. Введи код: <span style="font-family: 'Courier New'; font-size: 20px; font-weight: bold;">${data.code}</span>
-                        </div>
-                    </div>
-                `;
+                // Don't use encodeURIComponent for data - causes issues with Cyrillic!
+                // Instead, use btoa directly (it handles UTF-8)
+                const jsonString = JSON.stringify(contacts);
+                console.log('📦 JSON:', jsonString);
                 
-                const card = document.querySelector('#step-success .card');
-                card.insertBefore(codeBox, card.firstChild);
-
-                if (btn) {
-                    btn.textContent = '✅ Готово! Используй код выше';
-                    btn.style.background = '#10b981';
-                }
-
-                // Show alert
-                alert(`✅ Контакты сохранены!\n\nТвой код: ${data.code}\n\n1. Открой Birthday Buddy app\n2. Settings → Import from Telegram\n3. Введи код: ${data.code}\n\nКод действителен 15 минут`);
-
+                // Convert to base64
+                const base64Data = btoa(unescape(encodeURIComponent(jsonString)));
+                console.log('📦 Base64 length:', base64Data.length);
+                
+                // Create deep link WITHOUT encoding the base64 part!
+                const deepLink = `birthdaybuddy://import?data=${base64Data}`;
+                console.log('🔗 Deep link created!', deepLink.substring(0, 100));
+                
+                // Try to open
+                window.location.href = deepLink;
+                console.log('📱 Opened with window.location!');
+                
+                // Show simple success
+                setTimeout(() => {
+                    alert(`✅ Проверь Birthday Buddy app!\n\nЕсли app не открылся - скажи мне!`);
+                }, 1000);
+                
             } catch (error) {
                 console.error('❌ ERROR:', error);
-                alert(`❌ Ошибка: ${error.message}\n\nПопробуй еще раз`);
-                if (btn) {
-                    btn.disabled = false;
-                    btn.textContent = 'Попробовать снова';
-                }
+                alert(`❌ Ошибка: ${error.message}\n\nТочный текст ошибки для разработчика!`);
             }
         }
 
