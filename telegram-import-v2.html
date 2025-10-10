@@ -379,7 +379,7 @@
             // UI feedback
             document.getElementById('sendCodeBtn').disabled = true;
             document.getElementById('phoneLoader').classList.add('show');
-            showStatus('phoneStatus', 'Sending code...', 'info');
+            showStatus('phoneStatus', 'Sending code... This may take up to 2 minutes', 'info');
 
             try {
                 const response = await fetch(`${BACKEND_URL}/api/auth/send-code`, {
@@ -393,11 +393,11 @@
 
                 if (response.ok && data.success) {
                     sessionId = data.sessionId;
-                    showStatus('phoneStatus', 'Code sent! Check Telegram app', 'success');
+                    showStatus('phoneStatus', 'Code sent! Check Telegram app (may take 1-2 minutes)', 'success');
                     
                     setTimeout(() => {
                         showStep('step-code');
-                    }, 1000);
+                    }, 2000);
                 } else {
                     console.error('API Error:', { status: response.status, data });
                     throw new Error(data.error || `API Error: ${response.status} - ${JSON.stringify(data)}`);
@@ -410,7 +410,18 @@
                     stack: error.stack,
                     name: error.name
                 });
-                showStatus('phoneStatus', `Load Failed: ${error.message}`, 'error');
+                
+                // Better error handling
+                let errorMessage = 'Failed to send code';
+                if (error.message.includes('Failed to fetch')) {
+                    errorMessage = 'Network error. Check your internet connection.';
+                } else if (error.message.includes('API Error')) {
+                    errorMessage = 'Server error. Please try again.';
+                } else {
+                    errorMessage = error.message;
+                }
+                
+                showStatus('phoneStatus', errorMessage, 'error');
                 document.getElementById('sendCodeBtn').disabled = false;
             } finally {
                 document.getElementById('phoneLoader').classList.remove('show');
