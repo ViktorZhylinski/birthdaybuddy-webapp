@@ -693,8 +693,8 @@
             }
         }
 
-        // Send to iOS app - GUARANTEED TO WORK!
-        async function sendToiOS() {
+        // Send to iOS app - ULTRA SIMPLE VERSION!
+        function sendToiOS() {
             if (contacts.length === 0) {
                 alert('No contacts to import');
                 return;
@@ -702,12 +702,8 @@
 
             console.log('🚀 STARTING IMPORT...', contacts.length);
 
-            // Disable button
-            const importBtn = document.querySelector('button[onclick="sendToiOS()"]');
-            if (importBtn) {
-                importBtn.disabled = true;
-                importBtn.textContent = '⏳ Opening app...';
-            }
+            // Show status
+            showStatus('successStatus', 'Opening Birthday Buddy app...', 'info');
 
             try {
                 // Encode contacts as base64
@@ -719,47 +715,32 @@
                 
                 // Deep link
                 const deepLink = `birthdaybuddy://import?data=${encodeURIComponent(base64Data)}`;
-                console.log('🔗 DEEP LINK:', deepLink);
+                console.log('🔗 DEEP LINK (full):', deepLink);
                 
-                // Try to open directly
-                console.log('📱 Trying window.location.href...');
+                // Show on page
+                const linkEl = document.createElement('div');
+                linkEl.style.cssText = 'margin: 20px 0; padding: 15px; background: #f5f5f5; border-radius: 8px; word-break: break-all; font-size: 12px; max-height: 100px; overflow: auto;';
+                linkEl.textContent = deepLink;
+                document.querySelector('#step-success .card').appendChild(linkEl);
+                
+                // Try to open
+                console.log('📱 Opening with window.location...');
                 window.location.href = deepLink;
                 
-                // Wait to see if app opens
-                await new Promise(resolve => setTimeout(resolve, 1500));
-                
-                // If still here, try to copy to clipboard
-                try {
-                    if (navigator.clipboard) {
-                        await navigator.clipboard.writeText(deepLink);
-                        console.log('✅ Copied to clipboard!');
-                        alert(`✅ Opening Birthday Buddy!\n\n` +
-                              `If app didn't open:\n` +
-                              `1. Link is copied to clipboard\n` +
-                              `2. Open Safari\n` +
-                              `3. Paste link (long press address bar)\n` +
-                              `4. Tap Go\n\n` +
-                              `This will import ${contacts.length} contacts!`);
-                    } else {
-                        throw new Error('Clipboard not available');
-                    }
-                } catch (clipErr) {
-                    console.log('❌ Clipboard failed:', clipErr);
-                    alert(`Tap "Open" if Safari asks!\n\n` +
-                          `Or check console for full deep link to copy manually.`);
-                }
+                // Show instructions
+                setTimeout(() => {
+                    alert(`📱 Opening Birthday Buddy!\n\n` +
+                          `If app didn't open:\n\n` +
+                          `1. Copy the long link shown on the page\n` +
+                          `2. Open Safari (new tab)\n` +
+                          `3. Paste in address bar\n` +
+                          `4. Tap Go\n\n` +
+                          `✅ This will import ${contacts.length} contacts!`);
+                }, 1000);
                 
             } catch (error) {
                 console.error('❌ ERROR:', error);
-                alert('Error! Check console.');
-            } finally {
-                // Re-enable button
-                if (importBtn) {
-                    setTimeout(() => {
-                        importBtn.disabled = false;
-                        importBtn.textContent = 'Import to Birthday Buddy';
-                    }, 2000);
-                }
+                alert(`❌ Error: ${error.message}\n\nThe deep link is shown on the page - copy it manually!`);
             }
         }
 
