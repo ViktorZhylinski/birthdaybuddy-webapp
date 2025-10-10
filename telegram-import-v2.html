@@ -693,7 +693,7 @@
             }
         }
 
-        // Send to iOS app - DIRECT DEEP LINK (NO encoding!)
+        // Send to iOS app - URL-SAFE BASE64!
         function sendToiOS() {
             if (contacts.length === 0) {
                 alert('No contacts to import');
@@ -703,31 +703,41 @@
             console.log('🚀 CREATING DEEP LINK...', contacts.length, 'contacts');
             
             try {
-                // Don't use encodeURIComponent for data - causes issues with Cyrillic!
-                // Instead, use btoa directly (it handles UTF-8)
                 const jsonString = JSON.stringify(contacts);
-                console.log('📦 JSON:', jsonString);
+                console.log('📦 JSON string:', jsonString);
                 
-                // Convert to base64
-                const base64Data = btoa(unescape(encodeURIComponent(jsonString)));
+                // Proper UTF-8 to base64 conversion
+                const utf8Bytes = new TextEncoder().encode(jsonString);
+                let binary = '';
+                utf8Bytes.forEach(byte => binary += String.fromCharCode(byte));
+                const base64Data = btoa(binary);
+                
                 console.log('📦 Base64 length:', base64Data.length);
                 
-                // Create deep link WITHOUT encoding the base64 part!
-                const deepLink = `birthdaybuddy://import?data=${base64Data}`;
-                console.log('🔗 Deep link created!', deepLink.substring(0, 100));
+                // URL-safe base64: replace +/= with -_~ (URL-safe characters)
+                const urlSafeBase64 = base64Data
+                    .replace(/\+/g, '-')
+                    .replace(/\//g, '_')
+                    .replace(/=/g, '~');
+                
+                console.log('📦 URL-safe base64 length:', urlSafeBase64.length);
+                
+                // Create deep link with URL-safe base64
+                const deepLink = `birthdaybuddy://import?data=${urlSafeBase64}`;
+                console.log('🔗 Deep link:', deepLink.substring(0, 100) + '...');
                 
                 // Try to open
                 window.location.href = deepLink;
-                console.log('📱 Opened with window.location!');
+                console.log('📱 Opening app...');
                 
-                // Show simple success
+                // Show success
                 setTimeout(() => {
-                    alert(`✅ Проверь Birthday Buddy app!\n\nЕсли app не открылся - скажи мне!`);
+                    alert(`✅ Проверь Birthday Buddy app!\n\n${contacts.length} контактов готовы к импорту!\n\nApp должен был открыться!`);
                 }, 1000);
                 
             } catch (error) {
                 console.error('❌ ERROR:', error);
-                alert(`❌ Ошибка: ${error.message}\n\nТочный текст ошибки для разработчика!`);
+                alert(`❌ Ошибка: ${error.message}\n\nТочный текст для разработчика!`);
             }
         }
 
