@@ -704,40 +704,52 @@
 
             // Encode contacts as base64
             const jsonString = JSON.stringify(contacts);
+            console.log('📦 JSON string length:', jsonString.length);
+            
             const base64Data = btoa(jsonString);
+            console.log('📦 Base64 length:', base64Data.length);
             
             // Deep link to iOS app
             const deepLink = `birthdaybuddy://import?data=${encodeURIComponent(base64Data)}`;
             
-            console.log('🔗 Deep link:', deepLink.substring(0, 100) + '...');
+            console.log('🔗 Deep link created!');
+            console.log('🔗 Full deep link:', deepLink);
+            
+            // Show loading state
+            showStatus('successStatus', `Opening app with ${contacts.length} contacts...`, 'info');
             
             // For iOS: Create invisible iframe for deep link
             const iframe = document.createElement('iframe');
             iframe.style.display = 'none';
             iframe.src = deepLink;
             document.body.appendChild(iframe);
+            console.log('📱 Iframe created and attached');
             
             // Also try direct location change (fallback)
             setTimeout(() => {
+                console.log('📱 Trying window.location...');
                 window.location.href = deepLink;
-            }, 100);
+            }, 250);
             
             // Show success message
             setTimeout(() => {
-                alert(`✅ Opening Birthday Buddy app with ${contacts.length} contacts!`);
-            }, 200);
+                alert(`✅ Tap "Open" to import ${contacts.length} contacts!\n\nIf nothing happens:\n1. Check Xcode console\n2. Copy link from console\n3. Paste in Safari`);
+            }, 500);
             
             // Cleanup iframe
             setTimeout(() => {
-                document.body.removeChild(iframe);
-            }, 1000);
+                if (document.body.contains(iframe)) {
+                    document.body.removeChild(iframe);
+                    console.log('🧹 Iframe cleaned up');
+                }
+            }, 2000);
             
             // Close Telegram WebApp if available
             setTimeout(() => {
                 if (window.Telegram && window.Telegram.WebApp) {
                     window.Telegram.WebApp.close();
                 }
-            }, 1500);
+            }, 2500);
         }
 
         // Navigation
