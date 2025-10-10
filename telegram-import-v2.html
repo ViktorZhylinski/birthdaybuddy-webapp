@@ -693,75 +693,79 @@
             }
         }
 
-        // Send to iOS app - SHOW FULL DEBUG INFO!
-        function sendToiOS() {
+        // Send to iOS app - CODE-BASED (works with Cyrillic!)
+        async function sendToiOS() {
             if (contacts.length === 0) {
                 alert('No contacts to import');
                 return;
             }
 
-            console.log('🚀 BUTTON CLICKED!', contacts.length, 'contacts');
+            console.log('🚀 STORING...', contacts.length, 'contacts');
             
-            // Prepare detailed info
-            let debugInfo = '📊 DEBUG INFO:\n\n';
-            debugInfo += `✅ Button clicked successfully\n`;
-            debugInfo += `📦 Contacts found: ${contacts.length}\n\n`;
-            
-            // Show first 3 contacts
-            debugInfo += '👥 First 3 contacts:\n';
-            contacts.slice(0, 3).forEach((c, i) => {
-                debugInfo += `${i+1}. ${c.name} - ${c.birthday}\n`;
-            });
-            
-            debugInfo += `\n🔧 Technical details:\n`;
-            debugInfo += `- Backend URL: ${BACKEND_URL}\n`;
-            debugInfo += `- Browser: ${navigator.userAgent.includes('iPhone') ? 'iPhone Safari' : 'Other'}\n`;
-            debugInfo += `- Total contacts: ${contacts.length}\n`;
-            
-            // Check if we can stringify
-            try {
-                const json = JSON.stringify(contacts);
-                debugInfo += `- JSON size: ${json.length} chars\n`;
-                debugInfo += `- Can stringify: ✅ YES\n`;
-            } catch (e) {
-                debugInfo += `- Can stringify: ❌ NO (${e.message})\n`;
+            const btn = document.querySelector('button[onclick="sendToiOS()"]');
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = '⏳ Saving...';
             }
-            
-            debugInfo += `\n❓ NEXT STEPS:\n`;
-            debugInfo += `\nOption 1: Deep Link\n`;
-            debugInfo += `- Tap OK\n`;
-            debugInfo += `- I'll try to open the app\n\n`;
-            debugInfo += `Option 2: Manual\n`;
-            debugInfo += `- If nothing happens\n`;
-            debugInfo += `- Tell developer what you see\n`;
-            
-            // Show alert
-            alert(debugInfo);
-            
-            // Try deep link anyway
+
             try {
-                const jsonString = JSON.stringify(contacts);
-                const base64Data = btoa(jsonString);
-                const deepLink = `birthdaybuddy://import?data=${encodeURIComponent(base64Data)}`;
+                // Store on backend
+                const response = await fetch(`${BACKEND_URL}/api/import/store`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contacts })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('✅ Stored! Code:', data.code);
+
+                // Show BIG code
+                const codeBox = document.createElement('div');
+                codeBox.style.cssText = 'margin: 30px 0; padding: 40px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 20px; text-align: center;';
+                codeBox.innerHTML = `
+                    <div style="color: white; font-size: 18px; margin-bottom: 20px; font-weight: 500;">
+                        ✅ ${contacts.length} контактов сохранены!
+                    </div>
+                    <div style="color: white; font-size: 64px; font-weight: bold; letter-spacing: 12px; font-family: 'Courier New', monospace; margin: 20px 0;">
+                        ${data.code}
+                    </div>
+                    <div style="color: rgba(255,255,255,0.9); font-size: 14px; margin-top: 20px;">
+                        Код действителен 15 минут
+                    </div>
+                    <div style="margin-top: 30px; padding-top: 25px; border-top: 2px solid rgba(255,255,255,0.3);">
+                        <div style="color: white; font-size: 16px; margin-bottom: 15px; font-weight: 500;">
+                            📱 Инструкция:
+                        </div>
+                        <div style="color: rgba(255,255,255,0.95); font-size: 15px; line-height: 1.8;">
+                            1. Открой Birthday Buddy app<br>
+                            2. Перейди в Settings → Import from Telegram<br>
+                            3. Введи код: <span style="font-family: 'Courier New'; font-size: 20px; font-weight: bold;">${data.code}</span>
+                        </div>
+                    </div>
+                `;
                 
-                console.log('🔗 Deep link length:', deepLink.length);
-                console.log('🔗 Trying to open...');
-                
-                // Try to open
-                window.location.href = deepLink;
-                
-                // Show follow-up
-                setTimeout(() => {
-                    const followUp = `Did Birthday Buddy app open?\n\n` +
-                                   `YES → Great! Contacts should import\n\n` +
-                                   `NO → Deep link not working from Safari\n` +
-                                   `Need different approach (code-based)\n\n` +
-                                   `Tell developer which one!`;
-                    alert(followUp);
-                }, 2000);
-                
+                const card = document.querySelector('#step-success .card');
+                card.insertBefore(codeBox, card.firstChild);
+
+                if (btn) {
+                    btn.textContent = '✅ Готово! Используй код выше';
+                    btn.style.background = '#10b981';
+                }
+
+                // Show alert
+                alert(`✅ Контакты сохранены!\n\nТвой код: ${data.code}\n\n1. Открой Birthday Buddy app\n2. Settings → Import from Telegram\n3. Введи код: ${data.code}\n\nКод действителен 15 минут`);
+
             } catch (error) {
-                alert(`❌ Error creating deep link:\n\n${error.message}\n\nThis means we need code-based import!`);
+                console.error('❌ ERROR:', error);
+                alert(`❌ Ошибка: ${error.message}\n\nПопробуй еще раз`);
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = 'Попробовать снова';
+                }
             }
         }
 
