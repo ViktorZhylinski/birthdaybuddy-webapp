@@ -344,7 +344,7 @@
 
     <script>
         // Configuration
-        const BACKEND_URL = 'http://localhost:3000'; // Replace with your Railway/Heroku URL
+        const BACKEND_URL = ''; // Replace with your Railway/Heroku URL
         
         let sessionId = null;
         let phoneNumber = null;
@@ -361,8 +361,8 @@
             const phoneInput = document.getElementById('phone');
             const phone = phoneInput.value.trim();
 
-            // Validate phone
-            if (!phone || !phone.match(/^\+\d{10,15}$/)) {
+            // Validate phone (more flexible)
+            if (!phone || !phone.match(/^\+\d{7,15}$/)) {
                 showStatus('phoneStatus', 'Please enter a valid phone number (e.g., +1234567890)', 'error');
                 return;
             }
