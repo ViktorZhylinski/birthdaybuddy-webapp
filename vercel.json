@@ -3,7 +3,7 @@
   "redirects": [
     {
       "source": "/",
-      "destination": "/telegram-import-v3-ultra.html"
+      "destination": "/telegram-import-v4-native.html"
     }
   ],
   "headers": [
