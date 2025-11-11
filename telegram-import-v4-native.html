@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Birthday Buddy</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
@@ -15,64 +15,65 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
-            /* EXACT Montana gradient from Swift */
+            /* EXACT Montana gradient */
             background: linear-gradient(135deg, 
-                rgb(5, 3, 20) 0%,      /* midnight */
-                rgb(20, 8, 38) 25%,    /* deepPurple */
-                rgb(38, 20, 71) 50%,   /* richGrape */
-                rgb(64, 31, 97) 100%   /* plumWine */
+                rgb(5, 3, 20) 0%,
+                rgb(20, 8, 38) 25%,
+                rgb(38, 20, 71) 50%,
+                rgb(64, 31, 97) 100%
             );
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 24px;
             color: white;
             overflow-x: hidden;
         }
 
         .container {
-            max-width: 400px;
+            max-width: 440px;
             width: 100%;
-            /* Glass morphism like Swift */
             background: linear-gradient(135deg, 
                 rgba(255, 255, 255, 0.12),
                 rgba(255, 255, 255, 0.06)
             );
             backdrop-filter: blur(20px) saturate(180%);
             -webkit-backdrop-filter: blur(20px) saturate(180%);
-            border-radius: 20px; /* cardCornerRadius */
-            padding: 28px;
+            border-radius: 24px;
+            padding: 36px 28px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         .emoji {
-            font-size: 60px;
+            font-size: 72px;
             text-align: center;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
             animation: floatAnimation 3s ease-in-out infinite;
         }
 
         @keyframes floatAnimation {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-8px); }
+            50% { transform: translateY(-10px); }
         }
 
         h1 {
-            font-size: 28px; /* title */
+            font-size: 32px;
             font-weight: 700;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
             text-align: center;
             color: white;
+            line-height: 1.2;
         }
 
         .subtitle {
-            font-size: 16px; /* body */
+            font-size: 18px;
             font-weight: 500;
-            opacity: 0.9; /* textSecondary */
+            opacity: 0.9;
             text-align: center;
-            margin-bottom: 24px; /* lg */
+            margin-bottom: 32px;
+            line-height: 1.4;
         }
 
         .step {
@@ -89,52 +90,58 @@
             to { opacity: 1; transform: scale(1); }
         }
 
+        label {
+            display: block;
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
         input {
             width: 100%;
-            padding: 16px; /* md */
-            font-size: 16px;
+            padding: 18px;
+            font-size: 18px;
             font-weight: 500;
             border: none;
-            border-radius: 16px; /* radiusMedium */
-            /* Glass input */
+            border-radius: 16px;
             background: rgba(255, 255, 255, 0.15);
             color: white;
-            margin-bottom: 12px; /* sm */
+            margin-bottom: 16px;
             transition: all 0.2s ease;
         }
 
         input::placeholder {
-            color: rgba(255, 255, 255, 0.5); /* textQuaternary */
+            color: rgba(255, 255, 255, 0.5);
         }
 
         input:focus {
             outline: none;
             background: rgba(255, 255, 255, 0.20);
-            box-shadow: 0 0 0 2px rgba(140, 64, 178, 0.5); /* vibrantGrape */
+            box-shadow: 0 0 0 3px rgba(140, 64, 178, 0.5);
         }
 
         button {
             width: 100%;
-            padding: 16px;
-            font-size: 16px;
+            padding: 18px;
+            font-size: 18px;
             font-weight: 600;
             border: none;
-            border-radius: 16px; /* radiusMedium */
+            border-radius: 16px;
             cursor: pointer;
             transition: all 0.2s ease;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
             position: relative;
             overflow: hidden;
         }
 
         button.primary {
-            /* primaryGradient */
             background: linear-gradient(135deg, 
-                rgb(140, 64, 178),  /* vibrantGrape */
-                rgb(102, 38, 140)   /* berryPurple */
+                rgb(140, 64, 178),
+                rgb(102, 38, 140)
             );
             color: white;
-            box-shadow: 0 4px 16px rgba(140, 64, 178, 0.4);
+            box-shadow: 0 4px 20px rgba(140, 64, 178, 0.5);
         }
 
         button.primary:active {
@@ -145,6 +152,7 @@
             background: rgba(255, 255, 255, 0.08);
             color: white;
             border: 1px solid rgba(255, 255, 255, 0.15);
+            font-size: 17px;
         }
 
         button:disabled {
@@ -153,13 +161,13 @@
         }
 
         .loader {
-            width: 32px;
-            height: 32px;
-            border: 3px solid rgba(255, 255, 255, 0.2);
-            border-top-color: rgb(140, 64, 178); /* vibrantGrape */
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-top-color: rgb(140, 64, 178);
             border-radius: 50%;
             animation: spin 0.6s linear infinite;
-            margin: 16px auto;
+            margin: 20px auto;
         }
 
         @keyframes spin {
@@ -168,44 +176,45 @@
 
         .status {
             text-align: center;
-            padding: 12px;
-            border-radius: 12px; /* radiusSmall */
-            margin: 12px 0;
-            font-size: 14px;
+            padding: 14px;
+            border-radius: 14px;
+            margin: 16px 0;
+            font-size: 16px;
             font-weight: 500;
+            line-height: 1.4;
         }
 
         .status.error {
-            background: rgba(245, 71, 82, 0.15); /* error */
+            background: rgba(245, 71, 82, 0.15);
             border: 1px solid rgba(245, 71, 82, 0.3);
         }
 
         .status.success {
-            background: rgba(56, 209, 107, 0.15); /* success */
+            background: rgba(56, 209, 107, 0.15);
             border: 1px solid rgba(56, 209, 107, 0.3);
         }
 
         .status.info {
-            background: rgba(82, 184, 255, 0.15); /* info */
+            background: rgba(82, 184, 255, 0.15);
             border: 1px solid rgba(82, 184, 255, 0.3);
         }
 
         .stats {
             text-align: center;
-            padding: 24px; /* lg */
+            padding: 28px;
             background: linear-gradient(135deg, 
                 rgba(255, 255, 255, 0.15),
                 rgba(255, 255, 255, 0.08)
             );
-            border-radius: 20px; /* cardCornerRadius */
-            margin-bottom: 16px; /* md */
+            border-radius: 22px;
+            margin-bottom: 20px;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .stats-number {
-            font-size: 56px;
+            font-size: 64px;
             font-weight: 700;
-            margin-bottom: 4px;
+            margin-bottom: 8px;
             background: linear-gradient(135deg, #fff, rgba(255,255,255,0.7));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -213,21 +222,21 @@
         }
 
         .stats-label {
-            font-size: 16px; /* body */
+            font-size: 18px;
             opacity: 0.9;
         }
 
         .contact-list {
-            max-height: 300px;
+            max-height: 320px;
             overflow-y: auto;
-            margin: 16px 0;
-            padding: 8px;
+            margin: 20px 0;
+            padding: 10px;
             background: rgba(0, 0, 0, 0.15);
-            border-radius: 16px; /* radiusMedium */
+            border-radius: 18px;
         }
 
         .contact-list::-webkit-scrollbar {
-            width: 4px;
+            width: 6px;
         }
 
         .contact-list::-webkit-scrollbar-track {
@@ -236,35 +245,35 @@
 
         .contact-list::-webkit-scrollbar-thumb {
             background: rgba(255, 255, 255, 0.2);
-            border-radius: 2px;
+            border-radius: 3px;
         }
 
         .contact-item {
-            padding: 12px; /* sm */
+            padding: 14px;
             background: rgba(255, 255, 255, 0.08);
-            border-radius: 12px; /* radiusSmall */
-            margin-bottom: 6px;
+            border-radius: 14px;
+            margin-bottom: 8px;
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .contact-name {
             font-weight: 600;
-            font-size: 15px;
-            margin-bottom: 2px;
+            font-size: 17px;
+            margin-bottom: 4px;
         }
 
         .contact-birthday {
-            font-size: 13px;
-            opacity: 0.7; /* textTertiary */
+            font-size: 15px;
+            opacity: 0.7;
         }
 
         .progress-bar {
             width: 100%;
-            height: 6px;
+            height: 8px;
             background: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
+            border-radius: 4px;
             overflow: hidden;
-            margin: 16px 0;
+            margin: 20px 0;
         }
 
         .progress-fill {
@@ -275,22 +284,21 @@
             );
             width: 0%;
             transition: width 0.2s ease;
-            border-radius: 3px;
+            border-radius: 4px;
         }
 
         .progress-text {
             text-align: center;
-            font-size: 18px;
+            font-size: 22px;
             font-weight: 600;
-            margin: 12px 0;
-            color: rgb(178, 102, 217); /* softLavender */
+            margin: 16px 0;
+            color: rgb(178, 102, 217);
         }
 
         .hidden {
             display: none !important;
         }
 
-        /* Floating particles background */
         .particles {
             position: fixed;
             top: 0;
@@ -304,8 +312,8 @@
 
         .particle {
             position: absolute;
-            width: 4px;
-            height: 4px;
+            width: 5px;
+            height: 5px;
             background: rgba(178, 102, 217, 0.6);
             border-radius: 50%;
             animation: float-particle 15s infinite ease-in-out;
@@ -318,10 +326,13 @@
         }
 
         .container { position: relative; z-index: 1; }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
-    <!-- Floating particles like Swift app -->
     <div class="particles" id="particles"></div>
 
     <div class="container">
@@ -331,12 +342,15 @@
             <h1>Import Birthdays</h1>
             <p class="subtitle">From Telegram • In seconds</p>
             
-            <input 
-                type="tel" 
-                id="phone" 
-                placeholder="+1234567890" 
-                autocomplete="tel"
-            />
+            <div class="input-group">
+                <label for="phone">Phone Number</label>
+                <input 
+                    type="tel" 
+                    id="phone" 
+                    placeholder="+1234567890" 
+                    autocomplete="tel"
+                />
+            </div>
 
             <button class="primary" id="sendCodeBtn" onclick="sendCode()">Send Code</button>
             
@@ -349,13 +363,16 @@
             <h1>Verification</h1>
             <p class="subtitle">Enter code from Telegram</p>
             
-            <input 
-                type="text" 
-                id="code" 
-                placeholder="12345" 
-                autocomplete="one-time-code"
-                maxlength="5"
-            />
+            <div class="input-group">
+                <label for="code">Verification Code</label>
+                <input 
+                    type="text" 
+                    id="code" 
+                    placeholder="12345" 
+                    autocomplete="one-time-code"
+                    maxlength="5"
+                />
+            </div>
 
             <button class="primary" id="verifyBtn" onclick="verifyCode()">Continue</button>
             <button class="secondary" onclick="backToPhone()">Back</button>
@@ -369,17 +386,19 @@
             <h1 id="pwdTitle">2FA Password</h1>
             <p class="subtitle" id="pwdSubtitle">Enter Telegram password</p>
             
-            <input 
-                type="password" 
-                id="password" 
-                placeholder="Your password" 
-                autocomplete="current-password"
-            />
+            <div class="input-group" id="pwdInputGroup">
+                <label for="password">Password</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    placeholder="Your password" 
+                    autocomplete="current-password"
+                />
+            </div>
 
             <button class="primary" id="passwordBtn" onclick="verifyPassword()">Continue</button>
             <button class="secondary" id="pwdBackBtn" onclick="backToPhone()">Back</button>
             
-            <!-- Progress UI -->
             <div class="progress-bar hidden" id="progressBar">
                 <div class="progress-fill" id="progressFill"></div>
             </div>
@@ -413,13 +432,11 @@
         let phoneNumber = null;
         let contacts = [];
 
-        // Initialize Telegram
         if (window.Telegram?.WebApp) {
             window.Telegram.WebApp.ready();
             window.Telegram.WebApp.expand();
         }
 
-        // Create floating particles
         function createParticles() {
             const particlesContainer = document.getElementById('particles');
             for (let i = 0; i < 20; i++) {
@@ -433,18 +450,17 @@
         }
         createParticles();
 
-        // OPTIMIZED: Send Code with retry
         async function sendCode() {
             const phone = document.getElementById('phone').value.trim();
 
             if (!phone.match(/^\+\d{7,15}$/)) {
-                showStatus('phoneStatus', 'Invalid phone format', 'error');
+                showStatus('phoneStatus', 'Invalid phone format (e.g., +1234567890)', 'error');
                 return;
             }
 
             phoneNumber = phone;
             setLoading('sendCodeBtn', true);
-            showStatus('phoneStatus', 'Sending...', 'info');
+            showStatus('phoneStatus', 'Sending code...', 'info');
 
             try {
                 const response = await fetchWithRetry(`${BACKEND_URL}/api/auth/send-code`, {
@@ -457,10 +473,10 @@
 
                 if (response.ok && data.success) {
                     sessionId = data.sessionId;
-                    showStatus('phoneStatus', 'Code sent ✓', 'success');
-                    setTimeout(() => showStep('step-code'), 1000);
+                    showStatus('phoneStatus', 'Code sent! Check Telegram ✓', 'success');
+                    setTimeout(() => showStep('step-code'), 1500);
                 } else {
-                    throw new Error(data.error || 'Failed');
+                    throw new Error(data.error || 'Failed to send code');
                 }
             } catch (error) {
                 showStatus('phoneStatus', error.message, 'error');
@@ -468,7 +484,6 @@
             }
         }
 
-        // OPTIMIZED: Verify Code
         async function verifyCode() {
             const code = document.getElementById('code').value.replace(/[\s\-]/g, '');
 
@@ -491,8 +506,8 @@
 
                 if (response.ok && data.success) {
                     if (data.passwordRequired) {
-                        showStatus('codeStatus', 'Code verified ✓', 'success');
-                        setTimeout(() => showStep('step-password'), 800);
+                        showStatus('codeStatus', 'Code verified! ✓', 'success');
+                        setTimeout(() => showStep('step-password'), 1000);
                     } else if (data.processing) {
                         showStatus('codeStatus', 'Processing...', 'success');
                         showProcessingUI();
@@ -510,7 +525,6 @@
             }
         }
 
-        // Verify Password
         async function verifyPassword() {
             const password = document.getElementById('password').value.trim();
 
@@ -549,7 +563,6 @@
             }
         }
 
-        // ULTRA FAST POLLING - 200ms intervals + exponential backoff
         function startUltraFastPolling(sessionId) {
             let attempts = 0;
             let lastPercent = 0;
@@ -578,13 +591,11 @@
                     }
                 } catch (error) {
                     console.error('Poll error:', error);
-                    // Exponential backoff on error
                     if (attempts > 100) clearInterval(poll);
                 }
-            }, 200); // 200ms = 5x per second = ULTRA FAST!
+            }, 200);
         }
 
-        // OPTIMIZED: Fetch with retry (for flaky connections)
         async function fetchWithRetry(url, options, retries = 2) {
             for (let i = 0; i <= retries; i++) {
                 try {
@@ -598,13 +609,12 @@
             }
         }
 
-        // Processing UI
         function showProcessingUI() {
             showStep('step-password');
             document.getElementById('pwdEmoji').textContent = '🚀';
             document.getElementById('pwdTitle').textContent = 'Processing';
             document.getElementById('pwdSubtitle').textContent = 'Finding birthdays...';
-            document.getElementById('password').classList.add('hidden');
+            document.getElementById('pwdInputGroup').classList.add('hidden');
             document.getElementById('passwordBtn').classList.add('hidden');
             document.getElementById('pwdBackBtn').classList.add('hidden');
             document.getElementById('progressBar').classList.remove('hidden');
@@ -616,7 +626,7 @@
             document.getElementById('passwordLoader').classList.add('hidden');
             document.getElementById('progressBar').classList.add('hidden');
             document.getElementById('progressText').classList.add('hidden');
-            document.getElementById('password').classList.remove('hidden');
+            document.getElementById('pwdInputGroup').classList.remove('hidden');
             document.getElementById('passwordBtn').classList.remove('hidden');
             document.getElementById('pwdBackBtn').classList.remove('hidden');
         }
@@ -640,10 +650,9 @@
             setTimeout(() => {
                 displayContacts();
                 showStep('step-success');
-            }, 800);
+            }, 1000);
         }
 
-        // Display contacts (sorted by nearest birthday)
         function displayContacts() {
             document.getElementById('contactCount').textContent = contacts.length;
 
@@ -678,14 +687,14 @@
             if (contacts.length > 10) {
                 const more = document.createElement('div');
                 more.style.textAlign = 'center';
-                more.style.padding = '8px';
+                more.style.padding = '10px';
                 more.style.opacity = '0.6';
+                more.style.fontSize = '16px';
                 more.textContent = `+ ${contacts.length - 10} more`;
                 listEl.appendChild(more);
             }
         }
 
-        // Send to iOS
         function sendToiOS() {
             if (contacts.length === 0) return;
 
@@ -698,13 +707,12 @@
                 
                 setTimeout(() => {
                     alert('✅ Check Birthday Buddy app!');
-                }, 800);
+                }, 1000);
             } catch (error) {
                 alert(`Error: ${error.message}`);
             }
         }
 
-        // Helpers
         function showStep(stepId) {
             document.querySelectorAll('.step').forEach(step => step.classList.remove('active'));
             document.getElementById(stepId).classList.add('active');
@@ -724,7 +732,7 @@
             el.classList.remove('hidden');
             
             if (type !== 'info') {
-                setTimeout(() => el.classList.add('hidden'), 3000);
+                setTimeout(() => el.classList.add('hidden'), 4000);
             }
         }
 
@@ -732,7 +740,6 @@
             document.getElementById(btnId).disabled = loading;
         }
 
-        // Auto-focus & Enter handlers
         window.addEventListener('load', () => {
             document.getElementById('phone').focus();
         });
@@ -751,4 +758,3 @@
     </script>
 </body>
 </html>
-
