@@ -1,0 +1,16 @@
+{
+  "name": "birthday-buddy-telegram-import",
+  "version": "3.0.0",
+  "description": "Ultra-fast Telegram birthday import web app",
+  "scripts": {
+    "dev": "python3 -m http.server 8000",
+    "deploy:vercel": "npx vercel --prod",
+    "deploy:netlify": "npx netlify deploy --prod --dir=.",
+    "test:local": "open http://localhost:8000/telegram-import-v3-ultra.html && python3 -m http.server 8000",
+    "tunnel": "npx ngrok http 8000"
+  },
+  "keywords": ["telegram", "birthday", "import", "webapp"],
+  "author": "Montana Development",
+  "license": "MIT"
+}
+

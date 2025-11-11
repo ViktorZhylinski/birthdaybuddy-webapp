@@ -1,0 +1,40 @@
+{
+  "version": 2,
+  "name": "birthday-buddy-telegram-import",
+  "builds": [
+    {
+      "src": "*.html",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/telegram-import-v3-ultra.html",
+      "dest": "/telegram-import-v3-ultra.html"
+    },
+    {
+      "src": "/",
+      "dest": "/telegram-import-v3-ultra.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, s-maxage=3600"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        }
+      ]
+    }
+  ]
+}
+
