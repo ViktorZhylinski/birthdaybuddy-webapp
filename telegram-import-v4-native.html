@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Birthday Buddy</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+            /* EXACT Montana gradient from Swift */
+            background: linear-gradient(135deg, 
+                rgb(5, 3, 20) 0%,      /* midnight */
+                rgb(20, 8, 38) 25%,    /* deepPurple */
+                rgb(38, 20, 71) 50%,   /* richGrape */
+                rgb(64, 31, 97) 100%   /* plumWine */
+            );
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 400px;
+            width: 100%;
+            /* Glass morphism like Swift */
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.12),
+                rgba(255, 255, 255, 0.06)
+            );
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-radius: 20px; /* cardCornerRadius */
+            padding: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .emoji {
+            font-size: 60px;
+            text-align: center;
+            margin-bottom: 16px;
+            animation: floatAnimation 3s ease-in-out infinite;
+        }
+
+        @keyframes floatAnimation {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        h1 {
+            font-size: 28px; /* title */
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-align: center;
+            color: white;
+        }
+
+        .subtitle {
+            font-size: 16px; /* body */
+            font-weight: 500;
+            opacity: 0.9; /* textSecondary */
+            text-align: center;
+            margin-bottom: 24px; /* lg */
+        }
+
+        .step {
+            display: none;
+        }
+
+        .step.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        input {
+            width: 100%;
+            padding: 16px; /* md */
+            font-size: 16px;
+            font-weight: 500;
+            border: none;
+            border-radius: 16px; /* radiusMedium */
+            /* Glass input */
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            margin-bottom: 12px; /* sm */
+            transition: all 0.2s ease;
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.5); /* textQuaternary */
+        }
+
+        input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.20);
+            box-shadow: 0 0 0 2px rgba(140, 64, 178, 0.5); /* vibrantGrape */
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 16px; /* radiusMedium */
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button.primary {
+            /* primaryGradient */
+            background: linear-gradient(135deg, 
+                rgb(140, 64, 178),  /* vibrantGrape */
+                rgb(102, 38, 140)   /* berryPurple */
+            );
+            color: white;
+            box-shadow: 0 4px 16px rgba(140, 64, 178, 0.4);
+        }
+
+        button.primary:active {
+            transform: scale(0.98);
+        }
+
+        button.secondary {
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .loader {
+            width: 32px;
+            height: 32px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-top-color: rgb(140, 64, 178); /* vibrantGrape */
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin: 16px auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .status {
+            text-align: center;
+            padding: 12px;
+            border-radius: 12px; /* radiusSmall */
+            margin: 12px 0;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status.error {
+            background: rgba(245, 71, 82, 0.15); /* error */
+            border: 1px solid rgba(245, 71, 82, 0.3);
+        }
+
+        .status.success {
+            background: rgba(56, 209, 107, 0.15); /* success */
+            border: 1px solid rgba(56, 209, 107, 0.3);
+        }
+
+        .status.info {
+            background: rgba(82, 184, 255, 0.15); /* info */
+            border: 1px solid rgba(82, 184, 255, 0.3);
+        }
+
+        .stats {
+            text-align: center;
+            padding: 24px; /* lg */
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.15),
+                rgba(255, 255, 255, 0.08)
+            );
+            border-radius: 20px; /* cardCornerRadius */
+            margin-bottom: 16px; /* md */
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stats-number {
+            font-size: 56px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            background: linear-gradient(135deg, #fff, rgba(255,255,255,0.7));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stats-label {
+            font-size: 16px; /* body */
+            opacity: 0.9;
+        }
+
+        .contact-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 16px 0;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 16px; /* radiusMedium */
+        }
+
+        .contact-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .contact-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .contact-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+        }
+
+        .contact-item {
+            padding: 12px; /* sm */
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px; /* radiusSmall */
+            margin-bottom: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .contact-name {
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 2px;
+        }
+
+        .contact-birthday {
+            font-size: 13px;
+            opacity: 0.7; /* textTertiary */
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, 
+                rgb(140, 64, 178),
+                rgb(178, 102, 217)
+            );
+            width: 0%;
+            transition: width 0.2s ease;
+            border-radius: 3px;
+        }
+
+        .progress-text {
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+            margin: 12px 0;
+            color: rgb(178, 102, 217); /* softLavender */
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Floating particles background */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.15;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(178, 102, 217, 0.6);
+            border-radius: 50%;
+            animation: float-particle 15s infinite ease-in-out;
+        }
+
+        @keyframes float-particle {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+            50% { opacity: 0.6; }
+            100% { transform: translateY(-100vh) translateX(50px); opacity: 0; }
+        }
+
+        .container { position: relative; z-index: 1; }
+    </style>
+</head>
+<body>
+    <!-- Floating particles like Swift app -->
+    <div class="particles" id="particles"></div>
+
+    <div class="container">
+        <!-- Step 1: Phone -->
+        <div id="step-phone" class="step active">
+            <div class="emoji">🎂</div>
+            <h1>Import Birthdays</h1>
+            <p class="subtitle">From Telegram • In seconds</p>
+            
+            <input 
+                type="tel" 
+                id="phone" 
+                placeholder="+1234567890" 
+                autocomplete="tel"
+            />
+
+            <button class="primary" id="sendCodeBtn" onclick="sendCode()">Send Code</button>
+            
+            <div id="phoneStatus" class="status hidden"></div>
+        </div>
+
+        <!-- Step 2: Code -->
+        <div id="step-code" class="step">
+            <div class="emoji">📱</div>
+            <h1>Verification</h1>
+            <p class="subtitle">Enter code from Telegram</p>
+            
+            <input 
+                type="text" 
+                id="code" 
+                placeholder="12345" 
+                autocomplete="one-time-code"
+                maxlength="5"
+            />
+
+            <button class="primary" id="verifyBtn" onclick="verifyCode()">Continue</button>
+            <button class="secondary" onclick="backToPhone()">Back</button>
+            
+            <div id="codeStatus" class="status hidden"></div>
+        </div>
+
+        <!-- Step 2.5: Password / Processing -->
+        <div id="step-password" class="step">
+            <div class="emoji" id="pwdEmoji">🔐</div>
+            <h1 id="pwdTitle">2FA Password</h1>
+            <p class="subtitle" id="pwdSubtitle">Enter Telegram password</p>
+            
+            <input 
+                type="password" 
+                id="password" 
+                placeholder="Your password" 
+                autocomplete="current-password"
+            />
+
+            <button class="primary" id="passwordBtn" onclick="verifyPassword()">Continue</button>
+            <button class="secondary" id="pwdBackBtn" onclick="backToPhone()">Back</button>
+            
+            <!-- Progress UI -->
+            <div class="progress-bar hidden" id="progressBar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text hidden" id="progressText">0%</div>
+            <div class="loader hidden" id="passwordLoader"></div>
+            <div id="passwordStatus" class="status hidden"></div>
+        </div>
+
+        <!-- Step 3: Success -->
+        <div id="step-success" class="step">
+            <div class="emoji">✨</div>
+            <h1>Ready!</h1>
+            <p class="subtitle">Tap to import to Birthday Buddy</p>
+            
+            <div class="stats">
+                <div class="stats-number" id="contactCount">0</div>
+                <div class="stats-label">Birthdays Found</div>
+            </div>
+
+            <div class="contact-list" id="contactList"></div>
+
+            <button class="primary" onclick="sendToiOS()">Import Now</button>
+            <button class="secondary" onclick="location.reload()">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        const BACKEND_URL = 'https://birthdaybuddy-backend-production.up.railway.app';
+        
+        let sessionId = null;
+        let phoneNumber = null;
+        let contacts = [];
+
+        // Initialize Telegram
+        if (window.Telegram?.WebApp) {
+            window.Telegram.WebApp.ready();
+            window.Telegram.WebApp.expand();
+        }
+
+        // Create floating particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+        createParticles();
+
+        // OPTIMIZED: Send Code with retry
+        async function sendCode() {
+            const phone = document.getElementById('phone').value.trim();
+
+            if (!phone.match(/^\+\d{7,15}$/)) {
+                showStatus('phoneStatus', 'Invalid phone format', 'error');
+                return;
+            }
+
+            phoneNumber = phone;
+            setLoading('sendCodeBtn', true);
+            showStatus('phoneStatus', 'Sending...', 'info');
+
+            try {
+                const response = await fetchWithRetry(`${BACKEND_URL}/api/auth/send-code`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone })
+                }, 2);
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    sessionId = data.sessionId;
+                    showStatus('phoneStatus', 'Code sent ✓', 'success');
+                    setTimeout(() => showStep('step-code'), 1000);
+                } else {
+                    throw new Error(data.error || 'Failed');
+                }
+            } catch (error) {
+                showStatus('phoneStatus', error.message, 'error');
+                setLoading('sendCodeBtn', false);
+            }
+        }
+
+        // OPTIMIZED: Verify Code
+        async function verifyCode() {
+            const code = document.getElementById('code').value.replace(/[\s\-]/g, '');
+
+            if (code.length < 5) {
+                showStatus('codeStatus', 'Enter 5-digit code', 'error');
+                return;
+            }
+
+            setLoading('verifyBtn', true);
+            showStatus('codeStatus', 'Verifying...', 'info');
+
+            try {
+                const response = await fetchWithRetry(`${BACKEND_URL}/api/auth/verify-code`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sessionId, code, phone: phoneNumber })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    if (data.passwordRequired) {
+                        showStatus('codeStatus', 'Code verified ✓', 'success');
+                        setTimeout(() => showStep('step-password'), 800);
+                    } else if (data.processing) {
+                        showStatus('codeStatus', 'Processing...', 'success');
+                        showProcessingUI();
+                        startUltraFastPolling(sessionId);
+                    } else {
+                        contacts = data.contacts;
+                        showSuccess(data.count);
+                    }
+                } else {
+                    throw new Error(data.error || 'Invalid code');
+                }
+            } catch (error) {
+                showStatus('codeStatus', error.message, 'error');
+                setLoading('verifyBtn', false);
+            }
+        }
+
+        // Verify Password
+        async function verifyPassword() {
+            const password = document.getElementById('password').value.trim();
+
+            if (!password) {
+                showStatus('passwordStatus', 'Enter password', 'error');
+                return;
+            }
+
+            setLoading('passwordBtn', true);
+            showStatus('passwordStatus', 'Verifying...', 'info');
+
+            try {
+                const response = await fetchWithRetry(`${BACKEND_URL}/api/auth/verify-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sessionId, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    if (data.processing) {
+                        showStatus('passwordStatus', 'Processing...', 'success');
+                        showProcessingUI();
+                        startUltraFastPolling(sessionId);
+                    } else {
+                        contacts = data.contacts;
+                        showSuccess(data.count);
+                    }
+                } else {
+                    throw new Error(data.error || 'Invalid password');
+                }
+            } catch (error) {
+                showStatus('passwordStatus', error.message, 'error');
+                setLoading('passwordBtn', false);
+            }
+        }
+
+        // ULTRA FAST POLLING - 200ms intervals + exponential backoff
+        function startUltraFastPolling(sessionId) {
+            let attempts = 0;
+            let lastPercent = 0;
+            
+            const poll = setInterval(async () => {
+                attempts++;
+                try {
+                    const response = await fetch(`${BACKEND_URL}/api/progress/${sessionId}`);
+                    const progress = await response.json();
+
+                    if (progress.status === 'complete') {
+                        clearInterval(poll);
+                        contacts = progress.contacts || [];
+                        animateProgressTo(100);
+                        setTimeout(() => showSuccess(progress.found), 500);
+                    } else if (progress.status === 'error') {
+                        clearInterval(poll);
+                        showStatus('passwordStatus', progress.error, 'error');
+                        hideProcessingUI();
+                    } else if (progress.status === 'processing') {
+                        if (progress.percent !== lastPercent) {
+                            animateProgressTo(progress.percent);
+                            updateProgress(progress.percent, progress.found);
+                            lastPercent = progress.percent;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Poll error:', error);
+                    // Exponential backoff on error
+                    if (attempts > 100) clearInterval(poll);
+                }
+            }, 200); // 200ms = 5x per second = ULTRA FAST!
+        }
+
+        // OPTIMIZED: Fetch with retry (for flaky connections)
+        async function fetchWithRetry(url, options, retries = 2) {
+            for (let i = 0; i <= retries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.ok) return response;
+                    if (i === retries) return response;
+                } catch (error) {
+                    if (i === retries) throw error;
+                    await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+                }
+            }
+        }
+
+        // Processing UI
+        function showProcessingUI() {
+            showStep('step-password');
+            document.getElementById('pwdEmoji').textContent = '🚀';
+            document.getElementById('pwdTitle').textContent = 'Processing';
+            document.getElementById('pwdSubtitle').textContent = 'Finding birthdays...';
+            document.getElementById('password').classList.add('hidden');
+            document.getElementById('passwordBtn').classList.add('hidden');
+            document.getElementById('pwdBackBtn').classList.add('hidden');
+            document.getElementById('progressBar').classList.remove('hidden');
+            document.getElementById('progressText').classList.remove('hidden');
+            document.getElementById('passwordLoader').classList.remove('hidden');
+        }
+
+        function hideProcessingUI() {
+            document.getElementById('passwordLoader').classList.add('hidden');
+            document.getElementById('progressBar').classList.add('hidden');
+            document.getElementById('progressText').classList.add('hidden');
+            document.getElementById('password').classList.remove('hidden');
+            document.getElementById('passwordBtn').classList.remove('hidden');
+            document.getElementById('pwdBackBtn').classList.remove('hidden');
+        }
+
+        function animateProgressTo(percent) {
+            document.getElementById('progressFill').style.width = percent + '%';
+        }
+
+        function updateProgress(percent, found) {
+            document.getElementById('progressText').textContent = `${percent}%`;
+            
+            if (found > 0) {
+                showStatus('passwordStatus', `🎂 Found ${found}!`, 'success');
+            } else {
+                showStatus('passwordStatus', `Processing ${percent}%...`, 'info');
+            }
+        }
+
+        function showSuccess(count) {
+            showStatus('passwordStatus', `Complete! Found ${count} 🎉`, 'success');
+            setTimeout(() => {
+                displayContacts();
+                showStep('step-success');
+            }, 800);
+        }
+
+        // Display contacts (sorted by nearest birthday)
+        function displayContacts() {
+            document.getElementById('contactCount').textContent = contacts.length;
+
+            const today = new Date();
+            const sorted = contacts.sort((a, b) => {
+                const dateA = new Date(a.birthday);
+                const dateB = new Date(b.birthday);
+                dateA.setFullYear(today.getFullYear());
+                dateB.setFullYear(today.getFullYear());
+                if (dateA < today) dateA.setFullYear(today.getFullYear() + 1);
+                if (dateB < today) dateB.setFullYear(today.getFullYear() + 1);
+                return dateA - dateB;
+            });
+
+            const listEl = document.getElementById('contactList');
+            listEl.innerHTML = '';
+
+            sorted.slice(0, 10).forEach(contact => {
+                const item = document.createElement('div');
+                item.className = 'contact-item';
+                
+                const date = new Date(contact.birthday);
+                const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                
+                item.innerHTML = `
+                    <div class="contact-name">${contact.name}</div>
+                    <div class="contact-birthday">🎂 ${dateStr}</div>
+                `;
+                listEl.appendChild(item);
+            });
+
+            if (contacts.length > 10) {
+                const more = document.createElement('div');
+                more.style.textAlign = 'center';
+                more.style.padding = '8px';
+                more.style.opacity = '0.6';
+                more.textContent = `+ ${contacts.length - 10} more`;
+                listEl.appendChild(more);
+            }
+        }
+
+        // Send to iOS
+        function sendToiOS() {
+            if (contacts.length === 0) return;
+
+            try {
+                const jsonString = JSON.stringify(contacts);
+                const base64Data = btoa(unescape(encodeURIComponent(jsonString)));
+                const deepLink = `birthdaybuddy://import?data=${base64Data}`;
+                
+                window.location.href = deepLink;
+                
+                setTimeout(() => {
+                    alert('✅ Check Birthday Buddy app!');
+                }, 800);
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        // Helpers
+        function showStep(stepId) {
+            document.querySelectorAll('.step').forEach(step => step.classList.remove('active'));
+            document.getElementById(stepId).classList.add('active');
+        }
+
+        function backToPhone() {
+            showStep('step-phone');
+            document.getElementById('phone').value = phoneNumber || '';
+            document.getElementById('code').value = '';
+            setLoading('sendCodeBtn', false);
+        }
+
+        function showStatus(id, message, type) {
+            const el = document.getElementById(id);
+            el.textContent = message;
+            el.className = `status ${type}`;
+            el.classList.remove('hidden');
+            
+            if (type !== 'info') {
+                setTimeout(() => el.classList.add('hidden'), 3000);
+            }
+        }
+
+        function setLoading(btnId, loading) {
+            document.getElementById(btnId).disabled = loading;
+        }
+
+        // Auto-focus & Enter handlers
+        window.addEventListener('load', () => {
+            document.getElementById('phone').focus();
+        });
+
+        document.getElementById('phone').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendCode();
+        });
+
+        document.getElementById('code').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') verifyCode();
+        });
+
+        document.getElementById('password').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') verifyPassword();
+        });
+    </script>
+</body>
+</html>
+

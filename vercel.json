@@ -1,20 +1,9 @@
 {
   "version": 2,
-  "name": "birthday-buddy-telegram-import",
-  "builds": [
+  "redirects": [
     {
-      "src": "*.html",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/telegram-import-v3-ultra.html",
-      "dest": "/telegram-import-v3-ultra.html"
-    },
-    {
-      "src": "/",
-      "dest": "/telegram-import-v3-ultra.html"
+      "source": "/",
+      "destination": "/telegram-import-v3-ultra.html"
     }
   ],
   "headers": [
